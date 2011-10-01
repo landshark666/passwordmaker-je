@@ -160,7 +160,7 @@ public class GuiMain implements DatabaseListener {
     
     
     private Config config;
-    private Account account = null;
+    private Account selectedAccount = null;
     private PasswordMaker pwm = null;
     private Database db = null;
     
@@ -733,8 +733,11 @@ public class GuiMain implements DatabaseListener {
         
         try {
             acc = db.findAccountByUrl(matchUrl);
-
-            selectAccount(acc);
+            if(acc!=null)
+                accountTreeViewer.setSelection(new StructuredSelection(acc));
+            else
+                accountTreeViewer.setSelection(null);
+            //selectAccount(acc);
         }
         catch(Exception e) {
             MBox.showError(shlPasswordMaker, "Unable to locate account based on URL.\n" + e.getMessage());
@@ -745,30 +748,27 @@ public class GuiMain implements DatabaseListener {
     }
     
     /**
-     * Called when an account is selected. This is invoked by the tree when the
-     * selection is made.
-     * 
-     * @param acc The new account selection.
+     * Exits (disposes) this shell, prompting if db is dirty.
      */
-    private void selectAccount(Account acc) {
-    	// Store the newly selected account
-        account = acc;
-        if(acc!=null) {
-            btnCopyToClipboard.setEnabled(account.isFolder()==false);
-            editAccount.setText(account.getName());
-            editDesc.setText(account.getDesc());
-            editUsername.setText(account.getUsername());
-        }
-        else {
-            btnCopyToClipboard.setEnabled(false);
-            editAccount.setText("NO ACCOUNT SELECTED");
-            editDesc.setText("");
-            editUsername.setText("");
+    private void exit() {
+        if(db.isDirty()) {
+            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+            case SWT.YES:
+                if(saveFile()==false)
+                    return;
+                break;
+                
+            case SWT.NO:
+                break;
+                
+            case SWT.CANCEL:
+                return;
+            }
         }
         
-        regeneratePasswordAndDraw();
+        shlPasswordMaker.dispose();
     }
-    
+
     /**
      * Generates the password and returns it.
      * @return A SecureCharArray object with the generated password.
@@ -778,9 +778,9 @@ public class GuiMain implements DatabaseListener {
         SecureCharArray output = null;
         
         try {
-        	if(account!=null) {
+        	if(selectedAccount!=null) {
         		mpw = new SecureCharArray(editMP.getText());
-        		output = pwm.makePassword(mpw, account);
+        		output = pwm.makePassword(mpw, selectedAccount);
         	}
         	else {
         		output = new SecureCharArray();
@@ -853,71 +853,11 @@ public class GuiMain implements DatabaseListener {
             newFile();
         }
         
-        findAccount();
+        // Only attempt an initial find if something was passed on the commandline
+        if(config.matchUrl!=null && config.matchUrl.length()>0)
+            findAccount();
     }
-    
-    /**
-     * Handles when focus is gained on the accountFilter text box.
-     */
-    private void onAccountFilterTextFocusGained() {
-    	String text = accountFilterText.getText();
-    	
-    	if(text.compareTo(ACCOUNT_FILTER_DESC)==0)
-    		accountFilterText.setText("");
-    	
-    	/* Clear the italics */
-    	accountFilterText.setFont(regularSearchFont);
 
-		filterIcon.setVisible(false);
-    }
-    
-    private void onAccountMenuShown() {
-        if(account!=null) {
-            if(account.isFolder()) {
-                menuItemNewGroup.setEnabled(true);
-                menuItemEditGroup.setEnabled(true);
-                menuItemDeleteGroup.setEnabled(true);
-                menuItemNewAccount.setEnabled(true);
-                menuItemEditAccount.setEnabled(false);
-                menuItemDeleteAccount.setEnabled(false);
-                
-            }
-            else {
-                menuItemNewGroup.setEnabled(false);
-                menuItemEditGroup.setEnabled(false);
-                menuItemDeleteGroup.setEnabled(false);
-                menuItemNewAccount.setEnabled(false);
-                menuItemEditAccount.setEnabled(true);
-                menuItemDeleteAccount.setEnabled(account.isDefault()==false && account.isRoot()==false);
-            }
-        }
-        else {
-            menuItemNewGroup.setEnabled(true);
-            menuItemEditGroup.setEnabled(false);
-            menuItemDeleteGroup.setEnabled(false);
-            menuItemNewAccount.setEnabled(true);
-            menuItemEditAccount.setEnabled(false);
-            menuItemDeleteAccount.setEnabled(false);
-        }
-    }
-    
-    /**
-     * Handles when focus is lost from the accountFilter text box.
-     */
-    private void onAccountFilterTextFocusLost() {
-    	String text = accountFilterText.getText();
-    	if(text.length()==0) {
-    		accountFilterText.setText(ACCOUNT_FILTER_DESC);
-        	accountFilterText.setFont(italicsSearchFont);
-        	filterIcon.setImage(searchImage);
-    	}
-    	else {
-        	accountFilterText.setFont(regularSearchFont);
-    		filterIcon.setImage(cancelImage);
-    	}
-		filterIcon.setVisible(true);
-    }
-    
     /**
      * Creates a new blank(sorta) database. This will attempt to save first if the current
      * database is dirty and abort the new file operation if the save fails.
@@ -944,7 +884,7 @@ public class GuiMain implements DatabaseListener {
         db.addDatabaseListener(this);
         accountTreeViewer.setInput(db);
         textFilename.setText("");
-
+    
         try {
             db.addDefaultAccount();
             db.setDirty(false);
@@ -959,148 +899,66 @@ public class GuiMain implements DatabaseListener {
         }
         
         selectFirstAccount();
-
+    
         return true;
     }
-    
+
     /**
-     * Attempts to save a file to the current filename. If there is no current file
-     * name, then save-as is invoked. This also clears the dirty status on success.
-     * @return true on success.
+     * Handles when focus is gained on the accountFilter text box.
      */
-    private boolean saveFile() {
-        boolean ret = false;
-        
-        // If we don't have a filename yet, call saveAs() which will call this function
-        // in return with a filename set.
-        if(config.inputFilename.length()==0) {
-            return saveFileAs();
-        }
-        
-        try {
-            RDFDatabaseWriter out = new RDFDatabaseWriter();
-            File newFile = new File(config.inputFilename);
-            if(newFile.exists()==false)
-                newFile.createNewFile();
-            
-            FileOutputStream fout = new FileOutputStream(newFile);
-            out.write(fout, db);
-            db.setDirty(false);
-            ret = true;
-        }
-        catch(Exception e) {
-            MBox.showError(shlPasswordMaker, "Unable to save to " + config.inputFilename + ".\n" + e.getMessage());
-        }
-        
-        return ret;
+    private void onAccountFilterTextFocusGained() {
+    	String text = accountFilterText.getText();
+    	
+    	if(text.compareTo(ACCOUNT_FILTER_DESC)==0)
+    		accountFilterText.setText("");
+    	
+    	/* Clear the italics */
+    	accountFilterText.setFont(regularSearchFont);
+    
+    	filterIcon.setVisible(false);
     }
-    
+
     /**
-     * Opens up a dialog-box allowing the user to select a file to save to. This will invoke
-     * saveFile behind the scenes and update config.inputFilename/textFilename on success.
-     * @return true on success.
+     * Handles when focus is lost from the accountFilter text box.
      */
-    private boolean saveFileAs() {
-        FileDialog fd = new FileDialog(shlPasswordMaker, SWT.SAVE);
-        fd.setText("Save RDF As");
-        fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
-        String selected = fd.open();
-        if(selected!=null && selected.length()>0) {
-            String oldFilename = config.inputFilename;
-            config.inputFilename = selected;
-            if(saveFile()==true) {
-                textFilename.setText(config.inputFilename);
-                return true;
+    private void onAccountFilterTextFocusLost() {
+    	String text = accountFilterText.getText();
+    	if(text.length()==0) {
+    		accountFilterText.setText(ACCOUNT_FILTER_DESC);
+        	accountFilterText.setFont(italicsSearchFont);
+        	filterIcon.setImage(searchImage);
+    	}
+    	else {
+        	accountFilterText.setFont(regularSearchFont);
+    		filterIcon.setImage(cancelImage);
+    	}
+    	filterIcon.setVisible(true);
+    }
+
+    private void onAccountMenuShown() {
+        if(selectedAccount!=null) {
+            if(selectedAccount.isFolder()) {
+                menuItemEditGroup.setEnabled(true);
+                menuItemDeleteGroup.setEnabled(true);
+                menuItemEditAccount.setEnabled(false);
+                menuItemDeleteAccount.setEnabled(false);
+                
             }
-            
-            // it failed if we get here, restore the filename
-            config.inputFilename = oldFilename;
-        }
-        
-        textFilename.setText(config.inputFilename);
-        
-        return false;
-    }
-    
-    private void exit() {
-        if(db.isDirty()) {
-            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
-            case SWT.YES:
-                if(saveFile()==false)
-                    return;
-                break;
-                
-            case SWT.NO:
-                break;
-                
-            case SWT.CANCEL:
-                return;
+            else {
+                menuItemEditGroup.setEnabled(false);
+                menuItemDeleteGroup.setEnabled(false);
+                menuItemEditAccount.setEnabled(true);
+                menuItemDeleteAccount.setEnabled(selectedAccount.isDefault()==false && selectedAccount.isRoot()==false);
             }
         }
-        
-        shlPasswordMaker.dispose();
-    }
-    
-    /**
-     * Opens up an "open" dialog and then opens the selected file.
-     * @return true on success.
-     */
-    private boolean openFile() {
-        FileDialog fd = new FileDialog(shlPasswordMaker, SWT.OPEN);
-        fd.setText("Open RDF File");
-        fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
-        String selected = fd.open();
-        if(selected!=null && selected.length()>0)
-            return openFile(selected);
-        return false;
-    }
-    
-    /**
-     * Reads a file in and sets up the necessary widgets with the data. If this fails
-     * then it will create a new empty database and return false.
-     * @param filename The filename (assumes RDF).
-     * @return true on success.
-     */
-    private boolean openFile(String filename) {
-        RDFDatabaseReader rdfReader = null;
-        File inputFile = null;
-        FileInputStream fin = null;
-        boolean ret = false;
-
-        try {
-            rdfReader = new RDFDatabaseReader();
-            inputFile = new File(filename);
-            fin = new FileInputStream(inputFile);
-            db = rdfReader.read(fin);
-            db.addDatabaseListener(this);
-            
-            // Widget setup
-            accountTreeViewer.setInput(db);
-            textFilename.setText(filename);
-            
-            selectFirstAccount();
-            
-            db.setDirty(false);
-            ret = true;
-        } catch(Exception ex) {
-            config.inputFilename = "";
-            db = new Database();
-            db.addDatabaseListener(this);
-            accountTreeViewer.setInput(db);
-
-            MBox.showError(shlPasswordMaker, "Unable to open " + filename + "\n" + ex.getMessage());
+        else {
+            menuItemEditGroup.setEnabled(false);
+            menuItemDeleteGroup.setEnabled(false);
+            menuItemEditAccount.setEnabled(false);
+            menuItemDeleteAccount.setEnabled(false);
         }
-        finally {
-            try {
-                if(fin!=null)
-                    fin.close();
-            } catch(Exception exinner) { }
-        }
-        
-        return ret;
     }
-    
-    
+
     /**
      * Method invoked when the copy-and-exit button is clicked.
      * @param btn The button clicked.
@@ -1140,22 +998,22 @@ public class GuiMain implements DatabaseListener {
      * Handles the deletion of the selected account.
      */
     private void onDeleteAccount() {
-        if(account==null) {
+        if(selectedAccount==null) {
             MBox.showError(shlPasswordMaker, "No account is selected for deletion, this should not be possible. Please file a bug report.");
             return;
         }
             
-        String type = account.isFolder() ? "folder" : "account";
-        String msg = "Are you sure you wish to delete " + type + " '" + account.getName() + "'";
-        int numChildren = account.getNestedChildCount();
+        String type = selectedAccount.isFolder() ? "folder" : "account";
+        String msg = "Are you sure you wish to delete " + type + " '" + selectedAccount.getName() + "'";
+        int numChildren = selectedAccount.getNestedChildCount();
         if(numChildren>0)
             msg += " and it's " + numChildren + " children?";
         else
             msg += "?";
         
         if(MBox.showYesNo(shlPasswordMaker, msg)==SWT.YES) {
-            Account nearestRelative = db.findNearestRelative(account);
-            db.removeAccount(account);
+            Account nearestRelative = db.findNearestRelative(selectedAccount);
+            db.removeAccount(selectedAccount);
             if(nearestRelative==null)
                 accountTreeViewer.setSelection(null);
             else
@@ -1226,20 +1084,20 @@ public class GuiMain implements DatabaseListener {
      */
     private void onEditAccount() {
     	AccountDlg dlg = null;
-    	if(account!=null) {
-    		dlg = new AccountDlg(account);
+    	if(selectedAccount!=null) {
+    		dlg = new AccountDlg(selectedAccount);
     		
     		// A copy of the edited account is returned if "ok" is clicked.
     		Account newAccount = dlg.open();
     		if(newAccount!=null) {
-    		    account.copySettings(newAccount);
-    		    db.changeAccount(account);
+    		    selectedAccount.copySettings(newAccount);
+    		    db.changeAccount(selectedAccount);
     		    //accountTreeViewer.refresh(account, true);
     		    
     		    // The tree already has the account selected. Applying the same selection actually
     		    // has the side-effect of unselecting the account. So instead just invoke the selectAccount()
     		    // method which is normally invoked by the tree causing the selection.
-    		    selectAccount(account);
+    		    selectAccount(selectedAccount);
     		}
     	}
     }
@@ -1289,23 +1147,42 @@ public class GuiMain implements DatabaseListener {
     }
     
     private void onNewAccountSelected() {
+        Account parentAccount = null;
         AccountDlg dlg = null;
-        if(account!=null) {
-            Account parentAccount = account;
-            Account newAccount = new Account();
-            dlg = new AccountDlg(newAccount);
+        
+        // If no account is selected, then default to the root
+        if(selectedAccount==null)
+            parentAccount = db.getRootAccount();
+        else {
+            // Otherwise decide if it will be a sibling of the selected account or a child
+            // of the selected group.
+            parentAccount = selectedAccount;
             
-            // A copy of the edited account is returned if "ok" is clicked.
-            newAccount = dlg.open();
-            if(newAccount!=null) {
-                try {
-                    newAccount.setId(Account.createId(newAccount));
-                    db.addAccount(parentAccount, newAccount);
-                } catch(Exception e) {
-                    MBox.showError(shlPasswordMaker, "While creating the new account, an error occurred. You should save your work and restart.\n" + e.getMessage());
+            // If the parent is not a folder, it needs to be created as a sibling. So locate
+            // who the real parent is.
+            if(parentAccount.isFolder()==false) {
+                parentAccount = db.findParent(parentAccount);
+                if(parentAccount==null) {
+                    MBox.showError(shlPasswordMaker, "Unable to locate parent account of '" + selectedAccount.getName() + "' id=" + selectedAccount.getId() +", cannot add new account.");
+                    return;
                 }
             }
-        }    
+        }
+
+        // Create a new blank account with default settings and the dialog
+        Account newAccount = new Account();
+        dlg = new AccountDlg(newAccount);
+            
+        // A copy of the account is returned if "ok" is clicked.
+        newAccount = dlg.open();
+        if(newAccount!=null) {
+            try {
+                newAccount.setId(Account.createId(newAccount));
+                db.addAccount(parentAccount, newAccount);
+            } catch(Exception e) {
+                MBox.showError(shlPasswordMaker, "While creating the new account, an error occurred. You should save your work and restart.\n" + e.getMessage());
+            }
+        }
     }
     
     /**
@@ -1332,6 +1209,65 @@ public class GuiMain implements DatabaseListener {
         
     
     /**
+     * Opens up an "open" dialog and then opens the selected file.
+     * @return true on success.
+     */
+    private boolean openFile() {
+        FileDialog fd = new FileDialog(shlPasswordMaker, SWT.OPEN);
+        fd.setText("Open RDF File");
+        fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
+        String selected = fd.open();
+        if(selected!=null && selected.length()>0)
+            return openFile(selected);
+        return false;
+    }
+
+    /**
+     * Reads a file in and sets up the necessary widgets with the data. If this fails
+     * then it will create a new empty database and return false.
+     * @param filename The filename (assumes RDF).
+     * @return true on success.
+     */
+    private boolean openFile(String filename) {
+        RDFDatabaseReader rdfReader = null;
+        File inputFile = null;
+        FileInputStream fin = null;
+        boolean ret = false;
+    
+        try {
+            rdfReader = new RDFDatabaseReader();
+            inputFile = new File(filename);
+            fin = new FileInputStream(inputFile);
+            db = rdfReader.read(fin);
+            db.addDatabaseListener(this);
+            
+            // Widget setup
+            accountTreeViewer.setInput(db);
+            textFilename.setText(filename);
+            
+            selectFirstAccount();
+            
+            db.setDirty(false);
+            ret = true;
+        } catch(Exception ex) {
+            config.inputFilename = "";
+            db = new Database();
+            db.addDatabaseListener(this);
+            accountTreeViewer.setInput(db);
+    
+            MBox.showError(shlPasswordMaker, "Unable to open " + filename + "\n" + ex.getMessage());
+        }
+        finally {
+            try {
+                if(fin!=null)
+                    fin.close();
+            } catch(Exception exinner) { }
+        }
+        
+        return ret;
+    }
+
+    /**
      * Causes the password to be regenerated.
      * 
      * This calculates the new generated password and draws it to the image which is used
@@ -1349,7 +1285,7 @@ public class GuiMain implements DatabaseListener {
            gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
            gc.fillRectangle(canvasOutput.getClientArea());
            
-           if(account!=null && account.isFolder()==false && editMP.getText().length()>0) {
+           if(selectedAccount!=null && selectedAccount.isFolder()==false && editMP.getText().length()>0) {
                output = generateOutput();
 
                if(showPassword==true) {
@@ -1376,15 +1312,102 @@ public class GuiMain implements DatabaseListener {
        }
     }
     
-	private void saveSettingsToConfig() {
-		try {
-			config.setClipboardTimeout(Integer.parseInt(editCopySeconds.getText()));
-		} catch(Exception e) {
-		}
-	}
-	
-	private void selectFirstAccount() {
-	    if(db.getRootAccount().getChildren().size()>0)
+	/**
+     * Attempts to save a file to the current filename. If there is no current file
+     * name, then save-as is invoked. This also clears the dirty status on success.
+     * @return true on success.
+     */
+    private boolean saveFile() {
+        boolean ret = false;
+        
+        // If we don't have a filename yet, call saveAs() which will call this function
+        // in return with a filename set.
+        if(config.inputFilename.length()==0) {
+            return saveFileAs();
+        }
+        
+        try {
+            RDFDatabaseWriter out = new RDFDatabaseWriter();
+            File newFile = new File(config.inputFilename);
+            if(newFile.exists()==false)
+                newFile.createNewFile();
+            
+            FileOutputStream fout = new FileOutputStream(newFile);
+            out.write(fout, db);
+            db.setDirty(false);
+            ret = true;
+        }
+        catch(Exception e) {
+            MBox.showError(shlPasswordMaker, "Unable to save to " + config.inputFilename + ".\n" + e.getMessage());
+        }
+        
+        return ret;
+    }
+
+    /**
+     * Opens up a dialog-box allowing the user to select a file to save to. This will invoke
+     * saveFile behind the scenes and update config.inputFilename/textFilename on success.
+     * @return true on success.
+     */
+    private boolean saveFileAs() {
+        FileDialog fd = new FileDialog(shlPasswordMaker, SWT.SAVE);
+        fd.setText("Save RDF As");
+        fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
+        String selected = fd.open();
+        if(selected!=null && selected.length()>0) {
+            String oldFilename = config.inputFilename;
+            config.inputFilename = selected;
+            if(saveFile()==true) {
+                textFilename.setText(config.inputFilename);
+                return true;
+            }
+            
+            // it failed if we get here, restore the filename
+            config.inputFilename = oldFilename;
+        }
+        
+        textFilename.setText(config.inputFilename);
+        
+        return false;
+    }
+
+    /**
+     * Writes the current settings back to the config file.
+     */
+    private void saveSettingsToConfig() {
+    	try {
+    		config.setClipboardTimeout(Integer.parseInt(editCopySeconds.getText()));
+    	} catch(Exception e) {
+    	}
+    }
+
+    /**
+     * Called when an account is selected. This is invoked by the tree when the
+     * selection is made.
+     * 
+     * @param acc The new account selection.
+     */
+    private void selectAccount(Account acc) {
+    	// Store the newly selected account
+        selectedAccount = acc;
+        if(acc!=null) {
+            btnCopyToClipboard.setEnabled(selectedAccount.isFolder()==false);
+            editAccount.setText(selectedAccount.getName());
+            editDesc.setText(selectedAccount.getDesc());
+            editUsername.setText(selectedAccount.getUsername());
+        }
+        else {
+            btnCopyToClipboard.setEnabled(false);
+            editAccount.setText("NO ACCOUNT SELECTED");
+            editDesc.setText("");
+            editUsername.setText("");
+        }
+        
+        regeneratePasswordAndDraw();
+    }
+
+    private void selectFirstAccount() {
+        if(db.getRootAccount().getChildren().size()>0)
 	        accountTreeViewer.setSelection(new StructuredSelection(db.getRootAccount().getChildren().get(0)));
 	    else
 	        accountTreeViewer.setSelection(null);
@@ -1398,19 +1421,30 @@ public class GuiMain implements DatabaseListener {
 	
     @Override
     public void accountAdded(Account parent, Account account) {
-        accountTreeViewer.refresh(parent, true);
+        // I'm not sure why, but if you add a node off the root level, refreshing the root node
+        // will not make it show up. Refreshing the whole tree does.
+        if(parent.isRoot())
+            accountTreeViewer.refresh();
+        else
+            accountTreeViewer.refresh(parent);
+        
         accountTreeViewer.setSelection(new StructuredSelection(account));    
     }
 
     @Override
     public void accountRemoved(Account parent, Account account) {
-        accountTreeViewer.remove(account);
-        //accountTreeViewer.setSelection(new StructuredSelection(parent));
+        // I'm not sure why, but if you remove a node off the root level, refreshing the root node
+        // will not make it show up. Refreshing the whole tree does.
+        if(parent.isRoot())
+            accountTreeViewer.refresh();
+        else
+            accountTreeViewer.refresh(parent);
     }
 
     @Override
     public void accountChanged(Account account) {
-        accountTreeViewer.refresh(account);
+        //accountTreeViewer.refresh(account);
+        accountTreeViewer.update(account, null);
     }
 
     @Override
