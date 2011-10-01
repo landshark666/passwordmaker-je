@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<project name="pwmje" default="bundle" basedir=".">
+	<property name="version" value="0.1" />
+	<property name="copyright" value="Copyright &#xa9; 2011 Dave Marotti" />
+	
+	<!-- These two properties control which already-built jar is pulled in -->
+	<property name="os-platform" value="cocoa" />
+	<property name="os-arch" value="macosx-x86_64" />
+	
+	<target name="bundle" description="Create OSX app bundle">
+    	<echo message="*** Bundling pwmje-${os-platform}-${os-arch}.jar" />
+
+		<taskdef name="jarbundler"
+			classpath="${basedir}/lib/jarbundler-2.2.0.jar"
+			classname="net.sourceforge.jarbundler.JarBundler" />
+		<jarbundler dir="${basedir}/dist" verbose="true" showPlist="true"
+			name="${ant.project.name}"
+			jar="${basedir}/dist/pwmje-${os-platform}-${os-arch}.jar"
+			mainclass="org.daveware.passwordmaker.Main"
+			icon="${basedir}/icons/pwmje.icns"
+			startOnMainThread="true"
+			version="${version}">
+		</jarbundler>
+	</target>
+</project>

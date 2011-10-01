@@ -1,0 +1,48 @@
+cancel.png
+Author: Gasyoun
+URL: http://www.iconfinder.com/icondetails/16150/16/cancel_icon
+License: Free
+Link back to: http://led24.de/iconset/
+
+check.png, magglass.png
+Author: Everaldo Coelho
+URL(check.png): http://www.iconfinder.com/icondetails/3207/16/add_check_ok_on_select_yes_icon
+URL(magglass.png): http://www.iconfinder.com/icondetails/3617/16/find_goggle_magnifying_glass_search_zoom_icon
+License: LGPL
+
+eye.png, eye_closed.png
+Author: Yusuke Kamiyamane
+URL(eye.png): http://www.iconfinder.com/icondetails/26323/16/eye_icon
+URL(eye_closed.png): http://www.iconfinder.com/icondetails/46020/16/close_eye_icon
+License: Creative Commons Attribution 3.0 Unported
+Link back to: http://www.iconfinder.com/browse/iconset/fugue/#readme
+
+folder.png
+Author: Momentum
+URL: http://www.iconfinder.com/icondetails/59915/16/closed_folder_icon
+License: Creative Commons Attribution-Share Alike 3.0
+Link back to: http://www.momentumdesignlab.com/
+
+folder_add.png, folder_remove.png
+Author: Dave Marotti
+These are a composite of folder.png and the +/- from key_add.png/key_delete.png.
+
+key.png, key_add.png, key_delete.png, key_next.png, small_lock.png
+Author: FatCow Web Hosting
+URL(key.png): http://www.iconfinder.com/icondetails/36132/16/key_icon
+URL(key_add.png): http://www.iconfinder.com/icondetails/36133/16/add_key_icon
+URL(key_next.png): http://www.iconfinder.com/icondetails/36135/16/go_key_icon
+URL(key_delete.png): http://www.iconfinder.com/icondetails/36134/16/delete_key_icon
+URL(small_lock): http://www.iconfinder.com/icondetails/36164/16/lock_secure_icon
+License: Creative Commons (Attribution 3.0 United States)
+
+pwmlogo.png
+Author: ?
+URL: http://passwordmaker.org
+License: Permission from Eric Yung (eric.jung@yahoo.com)
+
+world_link.png
+Author: Mark James
+URL: http://www.iconfinder.com/icondetails/5929/16/link_world_icon
+License: Creative Commons (Attribution 2.5 Generic)
+Link back to: http://www.iconfinder.com/browse/iconset/silk2/#readme

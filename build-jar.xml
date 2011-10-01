@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build_pwmje_jar" name="Create Runnable Jar for Project PasswordMakerJE with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required      -->             
+    <!-- OSX X86-64
+    <property name="os-platform" value="cocoa" />
+    <property name="os-arch" value="macosx_x86_64" />
+	-->
+    <!-- Win32 X86-64
+    <property name="os-platform" value="win32" />
+    <property name="os-arch" value="win32_x86_64" />
+	-->
+    <target name="build_pwmje_jar">
+    	<echo message="*** Building pwmje-${os-platform}-${os-arch}.jar" />
+        <jar destfile="dist/pwmje-${os-platform}-${os-arch}.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="org.daveware.passwordmaker.Main"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" 
+                	value="./ bcprov-jdk16-146.jar java-getopt-1.0.13.jar swt-${os-platform}-${os-arch}.jar 
+                	org.eclipse.core.commands_3.6.0.I20110111-0800.jar org.eclipse.equinox.common_3.6.0.v20110523.jar org.eclipse.jface_3.7.0.I20110522-1430.jar
+                	org.eclipse.osgi_3.7.0.v20110613.jar org.eclipse.ui.workbench_3.7.0.I20110519-0100.jar"/>
+            </manifest>
+            <zipfileset src="lib/jar-in-jar-loader.zip"/>
+            <fileset dir="bin"/>
+            <zipfileset dir="lib" includes="bcprov-jdk16-146.jar"/>
+            <zipfileset dir="lib" includes="simple-xml-2.5.3.jar"/>
+            <zipfileset dir="lib" includes="java-getopt-1.0.13.jar"/>
+        	<zipfileset dir="lib/swt-3.7" includes="swt-${os-platform}-${os-arch}.jar"/>
+        	<zipfileset dir="lib/jface" includes="org.eclipse.core.commands_3.6.0.I20110111-0800.jar" />
+        	<zipfileset dir="lib/jface" includes="org.eclipse.equinox.common_3.6.0.v20110523.jar" />
+        	<zipfileset dir="lib/jface" includes="org.eclipse.jface_3.7.0.I20110522-1430.jar" />
+        	<zipfileset dir="lib/jface" includes="org.eclipse.osgi_3.7.0.v20110613.jar" />
+        	<zipfileset dir="lib/jface" includes="org.eclipse.ui.workbench_3.7.0.I20110519-0100.jar" />
+        </jar>
+    </target>
+</project>
