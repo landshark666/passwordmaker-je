@@ -23,11 +23,18 @@ import org.daveware.passwordmaker.AlgorithmType;
 import org.daveware.passwordmaker.LeetLevel;
 import org.daveware.passwordmaker.LeetType;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
@@ -46,15 +53,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 
 public class AccountDlg {
 	Account account = null;
+	AccountPatternData selectedPattern = null;
+	
 	boolean okClicked = false;
 	
 	protected Shell shlAccountSettings;
@@ -79,6 +85,10 @@ public class AccountDlg {
 	private CTabItem tbtmUrl;
 	private CTabItem tbtmExtended;
 	private Composite compositeUrls;
+	private Button btnAddPattern;
+	private Button btnEditPattern;
+	private Button btnCopyPattern;
+	private Button btnDeletePattern;
 	
 	/**
 	 * @wbp.parser.constructor
@@ -112,118 +122,6 @@ public class AccountDlg {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	private boolean populateAccountFromGui() {
-	    // General page
-	    if(textName.getText().trim().length()>0)
-	        account.setName(textName.getText());
-	    else {
-	        return false;
-	    }
-	    
-	    account.setDesc(textNotes.getText());
-	    
-	    // For folders, the 2 tabs which contain the rest of the items have already been
-	    // disposed of.  Use of their widgets will cause SWT exceptions.
-	    if(account.isFolder())
-	        return true;
-	    
-	    // URLs page
-	    account.setUrl(textUseUrl.getText());
-
-	    // TODO: the table
-	    
-	    // Extended page
-	    account.setUsername(textUsername.getText());
-	    switch(comboUseLeet.getSelectionIndex()) {
-            case 0: account.setLeetType(LeetType.NONE); break;
-            case 1: account.setLeetType(LeetType.BEFORE); break;
-            case 2: account.setLeetType(LeetType.AFTER); break;
-            case 3: account.setLeetType(LeetType.BOTH); break;
-            default: account.setLeetType(LeetType.NONE); break;
-	    }
-	    account.setLeetLevel(LeetLevel.fromInt(comboLeetLevel.getSelectionIndex()));
-	    int selectedAlgo = comboHashAlgorithm.getSelectionIndex();
-	    account.setAlgorithm(AlgorithmType.getTypes()[selectedAlgo/2]);
-	    account.setHmac((selectedAlgo & 1)!=0);
-	    
-	    if(textPasswordLength.getText().trim().length()>0) {
-    	    int passLength = 0;
-    	    try {
-    	        passLength = Integer.parseInt(textPasswordLength.getText());
-    	    } catch(Exception badPassLen) {
-    	        return false;
-    	    }
-    	    account.setLength(passLength);
-	    }
-	    else {
-	        return false;
-	    }
-	    
-	    if(comboCharacters.getText().length()>2) {
-	        account.setCharacterSet(comboCharacters.getText());
-	    } else {
-	        return false;
-	    }
-	       
-	    account.setModifier(textModifier.getText());
-	    account.setPrefix(textPrefix.getText());
-	    account.setSuffix(textSuffix.getText());
-	    
-	    return true;
-	}
-
-	private void populateFromAccount() {
-		if(account==null)
-			return;
-		
-		// General page
-		textName.setText(account.getName());
-		textNotes.setText(account.getDesc());
-		
-		// URLs page
-		textUseUrl.setText(account.getUrl());
-		// TODO: table
-		
-		if(account.isFolder()) {
-		    shlAccountSettings.setText("Folder Settings");
-		    return;
-		}
-		
-		// Extended page
-		textUsername.setText(account.getUsername());
-		if(account.getLeetType()==LeetType.NONE) {
-			comboUseLeet.select(0);
-			comboLeetLevel.setEnabled(false);
-		}
-		else {
-			if(account.getLeetType()==LeetType.BEFORE)
-				comboUseLeet.select(1);
-			else if(account.getLeetType()==LeetType.AFTER)
-				comboUseLeet.select(2);
-			else if(account.getLeetType()==LeetType.BOTH)
-				comboUseLeet.select(3);
-			
-			comboLeetLevel.setEnabled(true);
-			comboLeetLevel.select(account.getLeetLevel().getLevel()-1);
-		}
-		
-		// Populate the algorithms
-		for(AlgorithmType type : AlgorithmType.getTypes()) {
-			comboHashAlgorithm.add(type.getName());
-			comboHashAlgorithm.add("HMAC-" + type.getName());
-		}
-		comboHashAlgorithm.select((account.getAlgorithm().getType()-1) * 2 +(account.isHmac()?1:0));
-		
-		textPasswordLength.setText(Integer.toString(account.getLength()));
-
-		comboCharacters.add(account.getCharacterSet(), 0);
-		comboCharacters.select(0);
-
-		textModifier.setText(account.getModifier());
-		textPrefix.setText(account.getPrefix());
-		textSuffix.setText(account.getSuffix());
 	}
 	
 	private void setupPatternTable() {
@@ -279,7 +177,22 @@ public class AccountDlg {
 				return null;
 			}
 		});
+		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            
+            @Override
+            public void selectionChanged(SelectionChangedEvent e) {
+                if(e.getSelection().isEmpty()) {
+                    selectPattern(null);
+                }
+                else if(e.getSelection() instanceof IStructuredSelection ){
+                    IStructuredSelection selection = (IStructuredSelection)e.getSelection();
+                    AccountPatternData data = (AccountPatternData)selection.iterator().next();
+                    selectPattern(data);
+                }
+            }
+        });
 		tableViewer.setInput(account);
+		tableViewer.refresh();
 	}
 	
 	/**
@@ -407,7 +320,7 @@ public class AccountDlg {
 		
 		checkAutoPop = new Button(compositeUrls, SWT.CHECK);
 		checkAutoPop.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		checkAutoPop.setText("Automatically populate username and password fields for sites that match this URL");
+		checkAutoPop.setText("Automatically populate username and password fields for sites that match this URL (Firefox Only)");
 		new Label(compositeUrls, SWT.NONE);
 		new Label(compositeUrls, SWT.NONE);
 		
@@ -445,16 +358,40 @@ public class AccountDlg {
 		compositePatternButtons.setLayout(rl_compositePatternButtons);
 		compositePatternButtons.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		Button btnAddPattern = new Button(compositePatternButtons, SWT.NONE);
+		btnAddPattern = new Button(compositePatternButtons, SWT.NONE);
+		btnAddPattern.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        onAddPatternSelected();
+		    }
+		});
 		btnAddPattern.setText("&Add Pattern");
 		
-		Button btnEditPattern = new Button(compositePatternButtons, SWT.NONE);
+		btnEditPattern = new Button(compositePatternButtons, SWT.NONE);
+		btnEditPattern.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        onEditPatternSelected();
+		    }
+		});
 		btnEditPattern.setText("&Edit Pattern");
 		
-		Button btnCopyPattern = new Button(compositePatternButtons, SWT.NONE);
+		btnCopyPattern = new Button(compositePatternButtons, SWT.NONE);
+		btnCopyPattern.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        onCopyPatternSelected();
+		    }
+		});
 		btnCopyPattern.setText("&Copy Pattern");
 		
-		Button btnDeletePattern = new Button(compositePatternButtons, SWT.NONE);
+		btnDeletePattern = new Button(compositePatternButtons, SWT.NONE);
+		btnDeletePattern.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        onDeletePatternSelected();
+		    }
+		});
 		btnDeletePattern.setText("&Delete Pattern");
 		
 		tbtmExtended = new CTabItem(tabFolder, SWT.NONE);
@@ -591,9 +528,65 @@ public class AccountDlg {
 
 	}
 	
-	void onCancelSelected() {
+	void onAddPatternSelected() {
+        PatternDlg dlg = new PatternDlg(shlAccountSettings, SWT.SHEET, new AccountPatternData());
+        AccountPatternData newData = dlg.open();
+        
+        if(newData!=null) {
+            account.getPatterns().add(newData);
+            tableViewer.refresh();
+        }
+    }
+
+    void onCancelSelected() {
 	    okClicked = false;
 	    shlAccountSettings.dispose();
+	}
+	
+	void onCopyPatternSelected() {
+	    if(selectedPattern==null)
+	        return;
+	    
+	    AccountPatternData newData = new AccountPatternData(selectedPattern);
+	    account.getPatterns().add(newData);
+	    tableViewer.refresh();
+	    tableViewer.setSelection(new StructuredSelection(newData));
+	}
+	
+	void onDeletePatternSelected() {
+	    if(selectedPattern==null)
+	        return;
+	    
+	    if(MBox.showYesNo(shlAccountSettings, "Are you sure you want to delete pattern '" + selectedPattern.getDesc() + "'?")==SWT.YES) {
+	        int index = account.getPatterns().indexOf(selectedPattern);
+	        account.getPatterns().remove(selectedPattern);
+	        
+	        int size = account.getPatterns().size();
+	        if(size>0) {
+	            if(index>=size)
+	                tableViewer.setSelection(new StructuredSelection(account.getPatterns().get(size-1)));
+	            else
+	                tableViewer.setSelection(new StructuredSelection(account.getPatterns().get(index)));
+	        }
+	        else
+	            tableViewer.setSelection(null);
+
+	        tableViewer.refresh();
+	    }
+	}
+	
+	void onEditPatternSelected() {
+	    if(selectedPattern==null)
+	        return;
+	    
+	    AccountPatternData newData;
+	    PatternDlg dlg = new PatternDlg(shlAccountSettings, SWT.SHEET, selectedPattern);
+	    
+	    newData = dlg.open();
+	    if(newData!=null) {
+	        selectedPattern.copyFrom(newData);
+	        tableViewer.refresh(selectedPattern);
+	    }
 	}
 	
 	void onOkSelected() {
@@ -601,5 +594,132 @@ public class AccountDlg {
 	        okClicked = true;
 	        shlAccountSettings.dispose();
 	    }
+	}
+	
+	private boolean populateAccountFromGui() {
+        // General page
+        if(textName.getText().trim().length()>0)
+            account.setName(textName.getText());
+        else {
+            return false;
+        }
+        
+        account.setDesc(textNotes.getText());
+        
+        // For folders, the 2 tabs which contain the rest of the items have already been
+        // disposed of.  Use of their widgets will cause SWT exceptions.
+        if(account.isFolder())
+            return true;
+        
+        // URLs page
+        account.setUrl(textUseUrl.getText());
+    
+        // TODO: the table
+        
+        // Extended page
+        account.setUsername(textUsername.getText());
+        switch(comboUseLeet.getSelectionIndex()) {
+            case 0: account.setLeetType(LeetType.NONE); break;
+            case 1: account.setLeetType(LeetType.BEFORE); break;
+            case 2: account.setLeetType(LeetType.AFTER); break;
+            case 3: account.setLeetType(LeetType.BOTH); break;
+            default: account.setLeetType(LeetType.NONE); break;
+        }
+        account.setLeetLevel(LeetLevel.fromInt(comboLeetLevel.getSelectionIndex()));
+        int selectedAlgo = comboHashAlgorithm.getSelectionIndex();
+        account.setAlgorithm(AlgorithmType.getTypes()[selectedAlgo/2]);
+        account.setHmac((selectedAlgo & 1)!=0);
+        
+        if(textPasswordLength.getText().trim().length()>0) {
+    	    int passLength = 0;
+    	    try {
+    	        passLength = Integer.parseInt(textPasswordLength.getText());
+    	    } catch(Exception badPassLen) {
+    	        return false;
+    	    }
+    	    account.setLength(passLength);
+        }
+        else {
+            return false;
+        }
+        
+        if(comboCharacters.getText().length()>2) {
+            account.setCharacterSet(comboCharacters.getText());
+        } else {
+            return false;
+        }
+           
+        account.setModifier(textModifier.getText());
+        account.setPrefix(textPrefix.getText());
+        account.setSuffix(textSuffix.getText());
+        
+        return true;
+    }
+
+    private void populateFromAccount() {
+    	if(account==null)
+    		return;
+    	
+    	// General page
+    	textName.setText(account.getName());
+    	textNotes.setText(account.getDesc());
+    	
+    	// URLs page
+    	textUseUrl.setText(account.getUrl());
+    	// TODO: table
+    	
+    	if(account.isFolder()) {
+    	    shlAccountSettings.setText("Folder Settings");
+    	    return;
+    	}
+    	
+    	// Extended page
+    	textUsername.setText(account.getUsername());
+    	if(account.getLeetType()==LeetType.NONE) {
+    		comboUseLeet.select(0);
+    		comboLeetLevel.setEnabled(false);
+    	}
+    	else {
+    		if(account.getLeetType()==LeetType.BEFORE)
+    			comboUseLeet.select(1);
+    		else if(account.getLeetType()==LeetType.AFTER)
+    			comboUseLeet.select(2);
+    		else if(account.getLeetType()==LeetType.BOTH)
+    			comboUseLeet.select(3);
+    		
+    		comboLeetLevel.setEnabled(true);
+    		comboLeetLevel.select(account.getLeetLevel().getLevel()-1);
+    	}
+    	
+    	// Populate the algorithms
+    	for(AlgorithmType type : AlgorithmType.getTypes()) {
+    		comboHashAlgorithm.add(type.getName());
+    		comboHashAlgorithm.add("HMAC-" + type.getName());
+    	}
+    	comboHashAlgorithm.select((account.getAlgorithm().getType()-1) * 2 +(account.isHmac()?1:0));
+    	
+    	textPasswordLength.setText(Integer.toString(account.getLength()));
+    
+    	comboCharacters.add(account.getCharacterSet(), 0);
+    	comboCharacters.select(0);
+    
+    	textModifier.setText(account.getModifier());
+    	textPrefix.setText(account.getPrefix());
+    	textSuffix.setText(account.getSuffix());
+    }
+
+    void selectPattern(AccountPatternData data) {
+	 // Store the newly selected account
+        selectedPattern = data;
+        if(data!=null) {
+            btnEditPattern.setEnabled(true);
+            btnDeletePattern.setEnabled(true);
+            btnCopyPattern.setEnabled(true);
+        }
+        else {
+            btnEditPattern.setEnabled(false);
+            btnDeletePattern.setEnabled(false);
+            btnCopyPattern.setEnabled(false);
+        }
 	}
 }
