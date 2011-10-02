@@ -274,14 +274,14 @@ public class RDFDatabaseReader implements DatabaseReader {
         for(int iPattern = 0; iPattern < 100000; ++iPattern) {
             String pattern = element.getAttribute("NS1:pattern" + iPattern).trim();
             String patternType = element.getAttribute("NS1:patterntype" + iPattern).trim();
-            String patternEnabled = element.getAttribute("NS1.patternenabled" + iPattern).trim();
+            String patternEnabled = element.getAttribute("NS1:patternenabled" + iPattern).trim();
             String patternDesc = element.getAttribute("NS1:patterndesc" + iPattern).trim();
             
             if(pattern.length()>0 || patternType.length()>0 || patternEnabled.length()>0 || patternDesc.length()>0) {
                 AccountPatternData data = new AccountPatternData();
                 data.setPattern(pattern);
                 data.setType(AccountPatternType.fromString(patternType));
-                data.setEnabled(patternEnabled.compareTo("true")==0);
+                data.setEnabled(patternEnabled.compareTo("true")==0 ? true : false);
                 data.setDesc(patternDesc);
                 account.getPatterns().add(data);
             } else {
