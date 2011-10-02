@@ -119,12 +119,14 @@ public class RDFDatabaseWriter implements DatabaseWriter {
 		writer.writeAttribute("RDF:about", account.getId());
 		writer.writeAttribute("NS1:name", account.getName());
 		writer.writeAttribute("NS1:description", account.getDesc());
-		if(account.getLeetType()==LeetType.BOTH) writer.writeAttribute("NS1:whereLeetLB", "both");
-		else if(account.getLeetType()==LeetType.BEFORE) writer.writeAttribute("NS1:whereLeetLB", "before");
-		else if(account.getLeetType()==LeetType.AFTER) writer.writeAttribute("NS1:whereLeetLB", "after");
-		else writer.writeAttribute("NS1:whereLeetLB", "off");
+		writer.writeAttribute("NS1:whereLeetLB", account.getLeetType().toRdfString());
 		writer.writeAttribute("NS1:leetLevelLB", Integer.toString(account.getLeetLevel().getLevel()));
-		writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toString().toLowerCase());
+		
+		if(account.isHmac())
+		    writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toHmacRdfString());
+		else
+		    writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toRdfString());
+		
 		writer.writeAttribute("NS1:passwordLength", Integer.toString(account.getLength()));
 		writer.writeAttribute("NS1:usernameTB", account.getUsername());
 		writer.writeAttribute("NS1:counter", account.getModifier());
