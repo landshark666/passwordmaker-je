@@ -618,8 +618,7 @@ public class AccountDlg {
         
         // URLs page
         account.setUrl(textUseUrl.getText());
-    
-        // TODO: the table
+        account.setAutoPop(checkAutoPop.getSelection());
         
         // Extended page
         account.setUsername(textUsername.getText());
@@ -669,15 +668,15 @@ public class AccountDlg {
     	textName.setText(account.getName());
     	textNotes.setText(account.getDesc());
     	
-    	// URLs page
-    	textUseUrl.setText(account.getUrl());
-    	// TODO: table
-    	
     	if(account.isFolder()) {
     	    shlAccountSettings.setText("Folder Settings");
     	    return;
     	}
     	
+        // URLs page
+        textUseUrl.setText(account.getUrl());
+        checkAutoPop.setSelection(account.isAutoPop());
+        
     	// Extended page
     	textUsername.setText(account.getUsername());
     	if(account.getLeetType()==LeetType.NONE) {
