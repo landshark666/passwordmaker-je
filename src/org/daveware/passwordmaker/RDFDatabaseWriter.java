@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.util.logging.Logger;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
@@ -41,6 +42,7 @@ import org.xml.sax.InputSource;
  * @author Dave Marotti
  */
 public class RDFDatabaseWriter implements DatabaseWriter {
+    Logger logger = Logger.getLogger(getClass().toString());
 
     /**
      * Pretty prints the XML.
@@ -164,7 +166,7 @@ public class RDFDatabaseWriter implements DatabaseWriter {
 		writer.writeStartElement("RDF:Seq");
 		writer.writeAttribute("RDF:about", account.getId());
 		for(Account child : account.getChildren()) {
-			System.out.println("WriteLi: " + child.getId());
+			logger.fine("    Write-RDF:li: " + child.getId());
 			writer.writeStartElement("RDF:li");
 			writer.writeAttribute("RDF:resource", child.getId());
 			writer.writeEndElement();
@@ -172,10 +174,9 @@ public class RDFDatabaseWriter implements DatabaseWriter {
 		writer.writeEndElement();
 
 		// Descriptions of all elements including the parent
-		System.out.println("WriteDesc: " + account.getName());
 		writeDescription(account, writer);
 		for(Account child : account.getChildren()) {
-			System.out.println("WriteDesc: " + child.getName());
+			logger.fine("Write-RDF:Desc: " + child.getName());
 			writeDescription(child, writer);
 		}
 		
