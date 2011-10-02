@@ -56,6 +56,9 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 
 public class AccountDlg {
 	Account account = null;
@@ -89,6 +92,9 @@ public class AccountDlg {
 	private Button btnEditPattern;
 	private Button btnCopyPattern;
 	private Button btnDeletePattern;
+    private ControlDecoration nameDecoration;
+    private ControlDecoration lengthDecoration;
+    private ControlDecoration charactersDecoration;
 	
 	/**
 	 * @wbp.parser.constructor
@@ -200,6 +206,15 @@ public class AccountDlg {
 		tableViewer.refresh();
 	}
 	
+	private void setupDecorators() {
+	    ControlDecoration [] decors = { lengthDecoration, charactersDecoration, nameDecoration };
+	    Image image = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage();
+	    for(ControlDecoration dec : decors) {
+	        dec.setImage(image);
+	        dec.hide();
+	    }
+	}
+	
 	/**
 	 * Open the window.
 	 */
@@ -210,6 +225,7 @@ public class AccountDlg {
 		tabFolder.setSelection(0);
 		populateGuiFromAccount();
 		setupPatternTable();
+		setupDecorators();
 		
 		if(account.isFolder()) {
 		    tbtmUrl.dispose();
@@ -222,6 +238,8 @@ public class AccountDlg {
 		shlAccountSettings.open();
 		shlAccountSettings.layout();
 		
+        textName.setFocus();
+        
 	
 		while (!shlAccountSettings.isDisposed()) {
 			if (!display.readAndDispatch()) {
@@ -291,7 +309,9 @@ public class AccountDlg {
 		
 		Composite composite = new Composite(tabFolder, SWT.NONE);
 		tbtmGeneral.setControl(composite);
-		composite.setLayout(new GridLayout(2, false));
+		GridLayout gl_composite = new GridLayout(2, false);
+		gl_composite.horizontalSpacing = 8;
+		composite.setLayout(gl_composite);
 		
 		Label lblName = new Label(composite, SWT.NONE);
 		lblName.setAlignment(SWT.RIGHT);
@@ -299,6 +319,9 @@ public class AccountDlg {
 		
 		textName = new Text(composite, SWT.BORDER);
 		textName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		nameDecoration = new ControlDecoration(textName, SWT.LEFT | SWT.TOP);
+		nameDecoration.setDescriptionText("You must specify a name for this account.");
 		
 		Label lblNotes = new Label(composite, SWT.NONE);
 		lblNotes.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -405,7 +428,9 @@ public class AccountDlg {
 		
 		Composite composite_2 = new Composite(tabFolder, SWT.NONE);
 		tbtmExtended.setControl(composite_2);
-		composite_2.setLayout(new GridLayout(5, false));
+		GridLayout gl_composite_2 = new GridLayout(5, false);
+		gl_composite_2.horizontalSpacing = 7;
+		composite_2.setLayout(gl_composite_2);
 		
 		Label lblUsername = new Label(composite_2, SWT.NONE);
 		lblUsername.setAlignment(SWT.RIGHT);
@@ -454,6 +479,9 @@ public class AccountDlg {
 		
 		textPasswordLength = new Text(composite_2, SWT.BORDER);
 		textPasswordLength.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		lengthDecoration = new ControlDecoration(textPasswordLength, SWT.LEFT | SWT.TOP);
+		lengthDecoration.setDescriptionText("The password length must be at least 1.");
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
@@ -468,6 +496,9 @@ public class AccountDlg {
 		GridData gd_comboCharacters = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_comboCharacters.widthHint = 200;
 		comboCharacters.setLayoutData(gd_comboCharacters);
+		
+		charactersDecoration = new ControlDecoration(comboCharacters, SWT.LEFT | SWT.TOP);
+		charactersDecoration.setDescriptionText("There must be at least 2 characters.");
 		comboCharacters.select(0);
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
@@ -603,9 +634,13 @@ public class AccountDlg {
 	
 	private boolean populateAccountFromGui() {
         // General page
-        if(textName.getText().trim().length()>0)
+        if(textName.getText().trim().length()>0) {
             account.setName(textName.getText());
+            nameDecoration.hide();
+        }
         else {
+            nameDecoration.show();
+            textName.setFocus();
             return false;
         }
         
@@ -638,7 +673,10 @@ public class AccountDlg {
     	    int passLength = 0;
     	    try {
     	        passLength = Integer.parseInt(textPasswordLength.getText());
+    	        lengthDecoration.hide();
     	    } catch(Exception badPassLen) {
+    	        lengthDecoration.show();
+    	        textPasswordLength.setFocus();
     	        return false;
     	    }
     	    account.setLength(passLength);
@@ -649,7 +687,10 @@ public class AccountDlg {
         
         if(comboCharacters.getText().length()>2) {
             account.setCharacterSet(comboCharacters.getText());
+            charactersDecoration.hide();
         } else {
+            charactersDecoration.show();
+            comboCharacters.setFocus();
             return false;
         }
            

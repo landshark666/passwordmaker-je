@@ -32,9 +32,12 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 
 public class PatternDlg extends Dialog {
 
@@ -55,6 +58,8 @@ public class PatternDlg extends Dialog {
     private Button button;
     private Button button_1;
     private Label lblUrlOrUrl;
+    private ControlDecoration nameDecoration;
+    private ControlDecoration patternDecoration;
 
     /**
      * Create the dialog.
@@ -66,7 +71,7 @@ public class PatternDlg extends Dialog {
         setText("URL Patterns");
         patternData = new AccountPatternData(data);
     }
-
+    
     /**
      * Open the dialog.
      * @return the result
@@ -77,6 +82,8 @@ public class PatternDlg extends Dialog {
         shlUrlPatternMatching.layout();
         
         populateGuiFromData();
+        setupDecorators();
+        textName.setFocus();
         
         Display display = getParent().getDisplay();
         while (!shlUrlPatternMatching.isDisposed()) {
@@ -93,15 +100,20 @@ public class PatternDlg extends Dialog {
     
     private boolean populateDataFromGui() {
         if(textName.getText().length()<=0) {
+            nameDecoration.show();
             textName.setFocus();
             return false;
         }
+        
+        nameDecoration.hide();
         patternData.setDesc(textName.getText());
         
         if(textPattern.getText().length()<=0) {
+            patternDecoration.show();
             textPattern.setFocus();
             return false;
         }
+        patternDecoration.hide();
         patternData.setPattern(textPattern.getText());
         
         patternData.setEnabled(chkEnabled.getSelection());
@@ -125,13 +137,22 @@ public class PatternDlg extends Dialog {
             btnRegularExpression.setSelection(true);
     }
 
+    private void setupDecorators() {
+        ControlDecoration [] decors = { nameDecoration, patternDecoration };
+        Image image = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage();
+        for(ControlDecoration dec : decors) {
+            dec.setImage(image);
+            dec.hide();
+        }
+    }
+    
     /**
      * Create contents of the dialog.
      */
     private void createContents() {
         shlUrlPatternMatching = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.RESIZE);
-        shlUrlPatternMatching.setMinimumSize(new Point(450, 234));
-        shlUrlPatternMatching.setSize(450, 234);
+        shlUrlPatternMatching.setMinimumSize(new Point(450, 205));
+        shlUrlPatternMatching.setSize(450, 200);
         shlUrlPatternMatching.setText("URL Pattern Matching Data");
         shlUrlPatternMatching.setLayout(new FormLayout());
         
@@ -145,12 +166,15 @@ public class PatternDlg extends Dialog {
         lblName.setText("Pattern Name:");
         
         textName = new Text(shlUrlPatternMatching, SWT.BORDER);
-        fd_lblName.right = new FormAttachment(textName, -6);
+        fd_lblName.right = new FormAttachment(textName, -7);
         FormData fd_textName = new FormData();
         fd_textName.left = new FormAttachment(0, 125);
         fd_textName.right = new FormAttachment(100, -10);
         fd_textName.top = new FormAttachment(0, 7);
         textName.setLayoutData(fd_textName);
+        
+        nameDecoration = new ControlDecoration(textName, SWT.LEFT | SWT.TOP);
+        nameDecoration.setDescriptionText("A pattern name must be specified.");
         
         textPattern = new Text(shlUrlPatternMatching, SWT.BORDER);
         FormData fd_textPattern = new FormData();
@@ -162,8 +186,7 @@ public class PatternDlg extends Dialog {
         chkEnabled = new Button(shlUrlPatternMatching, SWT.CHECK);
         chkEnabled.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         FormData fd_chkEnabled = new FormData();
-        fd_chkEnabled.top = new FormAttachment(textPattern, 13);
-        fd_chkEnabled.left = new FormAttachment(textName, 0, SWT.LEFT);
+        fd_chkEnabled.left = new FormAttachment(lblName, 0, SWT.LEFT);
         chkEnabled.setLayoutData(fd_chkEnabled);
         chkEnabled.setText("&Enabled");
         
@@ -172,12 +195,13 @@ public class PatternDlg extends Dialog {
         grpPatternContains.setText("Pattern Contains");
         grpPatternContains.setLayout(new GridLayout(2, false));
         FormData fd_grpPatternContains = new FormData();
-        fd_grpPatternContains.top = new FormAttachment(0, 90);
+        fd_grpPatternContains.top = new FormAttachment(textPattern, 6);
+        fd_grpPatternContains.left = new FormAttachment(lblName, 0, SWT.LEFT);
         fd_grpPatternContains.right = new FormAttachment(100, -10);
-        fd_grpPatternContains.left = new FormAttachment(0, 10);
         grpPatternContains.setLayoutData(fd_grpPatternContains);
         
         btnWildcards = new Button(grpPatternContains, SWT.RADIO);
+        btnWildcards.setSelection(true);
         btnWildcards.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         btnWildcards.setText("Wildcards");
         
@@ -194,6 +218,7 @@ public class PatternDlg extends Dialog {
         lblExampleHttpsmailyahoo.setText("Example: https?://mail\\.yahoo\\.com\\/.*");
         
         button = new Button(shlUrlPatternMatching, SWT.NONE);
+        fd_chkEnabled.top = new FormAttachment(button, 5, SWT.TOP);
         button.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
@@ -231,6 +256,9 @@ public class PatternDlg extends Dialog {
         FormData fd_lblUrlOrUrl = new FormData();
         fd_lblUrlOrUrl.left = new FormAttachment(lblName, 0, SWT.LEFT);
         fd_lblUrlOrUrl.top = new FormAttachment(textPattern, 3, SWT.TOP);
+        
+        patternDecoration = new ControlDecoration(textPattern, SWT.LEFT | SWT.TOP);
+        patternDecoration.setDescriptionText("An url pattern must be specified.");
         fd_lblUrlOrUrl.right = new FormAttachment(lblName, 0, SWT.RIGHT);
         lblUrlOrUrl.setLayoutData(fd_lblUrlOrUrl);
         lblUrlOrUrl.setText("Url or Url Pattern:");
