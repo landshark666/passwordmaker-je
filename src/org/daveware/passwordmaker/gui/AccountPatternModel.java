@@ -46,5 +46,4 @@ public class AccountPatternModel implements IStructuredContentProvider {
 			return null;
 		return account.getPatterns().toArray();
 	}
-
 }
