@@ -76,6 +76,14 @@ public class AlgorithmType implements Comparable<AlgorithmType> {
         return name;
     }
     
+    public String toRdfString() {
+        return rdfName;
+    }
+    
+    public String toHmacRdfString() {
+        return rdfHmacName;
+    }
+    
     public static AlgorithmType [] getTypes() {
         return TYPES;
     }
@@ -103,7 +111,7 @@ public class AlgorithmType implements Comparable<AlgorithmType> {
      * @return The algorithm type.
      * @throws Exception upon invalid algorithm string.
      */
-    public static AlgorithmType fromString(String str) 
+    public static AlgorithmType fromRdfString(String str) 
             throws Exception
     {
         // default
