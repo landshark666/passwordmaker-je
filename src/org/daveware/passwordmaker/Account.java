@@ -49,6 +49,7 @@ public final class Account implements Comparable<Account> {
     private String        suffix            = "";
     private boolean       sha256Bug         = false;
     private String        id                = "";
+    private boolean       autoPop           = false;
     private ArrayList<AccountPatternData> patterns = new ArrayList<AccountPatternData>();
     private ArrayList<Account> children     = new ArrayList<Account>();
     
@@ -66,7 +67,8 @@ public final class Account implements Comparable<Account> {
     
     /**
      * Constructor which allows all members to be defined except for the ID which
-     * will be constructed from a SHA-1 hash of the URL + username.
+     * will be constructed from a SHA-1 hash of the URL + username. This does not
+     * include autopop.
      * 
      * @param name
      * @param desc
@@ -133,6 +135,7 @@ public final class Account implements Comparable<Account> {
         this.suffix       = a.suffix;
         this.sha256Bug    = a.sha256Bug;
         this.isAFolder    = a.isAFolder;
+        this.autoPop      = a.autoPop;
         this.patterns.clear();
         for(AccountPatternData data : a.getPatterns()) {
             this.patterns.add(new AccountPatternData(data));
@@ -140,7 +143,7 @@ public final class Account implements Comparable<Account> {
     }
     
     /**
-     * Alternate constructor that allows the id to also be supplied.
+     * Alternate constructor that allows the id to also be supplied. (Still no autopop).
      */
     public Account(String name, String desc, String url, String username, AlgorithmType algorithm, boolean hmac,
             boolean trim, int length, String characterSet, LeetType leetType,
@@ -211,6 +214,14 @@ public final class Account implements Comparable<Account> {
     
     public boolean isFolder() {
         return isAFolder;
+    }
+    
+    public boolean isAutoPop() {
+        return autoPop;
+    }
+    
+    public void setAutoPop(boolean b) {
+        autoPop = b;
     }
     
     /**
