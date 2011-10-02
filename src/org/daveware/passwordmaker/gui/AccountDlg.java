@@ -192,6 +192,11 @@ public class AccountDlg {
             }
         });
 		tableViewer.setInput(account);
+		if(account.getPatterns().size()>0)
+		    tableViewer.setSelection(new StructuredSelection(account.getPatterns().get(0)));
+		else
+		    tableViewer.setSelection(null);
+		
 		tableViewer.refresh();
 	}
 	
@@ -203,7 +208,7 @@ public class AccountDlg {
 		createContents();
 		
 		tabFolder.setSelection(0);
-		populateFromAccount();
+		populateGuiFromAccount();
 		setupPatternTable();
 		
 		if(account.isFolder()) {
@@ -656,7 +661,7 @@ public class AccountDlg {
         return true;
     }
 
-    private void populateFromAccount() {
+    private void populateGuiFromAccount() {
     	if(account==null)
     		return;
     	
