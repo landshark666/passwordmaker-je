@@ -23,32 +23,36 @@ package org.daveware.passwordmaker;
  * @author Dave Marotti
  */
 public class LeetType implements Comparable<LeetType> {
-    public static LeetType NONE     = new LeetType(0);
-    public static LeetType BEFORE   = new LeetType(1);
-    public static LeetType AFTER    = new LeetType(2);
-    public static LeetType BOTH     = new LeetType(3);
+    public static LeetType NONE     = new LeetType(0, "None", "off");
+    public static LeetType BEFORE   = new LeetType(1, "Before", "before-hashing");
+    public static LeetType AFTER    = new LeetType(2, "After", "after-hashing");
+    public static LeetType BOTH     = new LeetType(3, "Both", "both");
     
-    private final static String [] NAMES = {
-        "None", "Before", "After", "Before and After"
-    };
+    public static LeetType [] TYPES = { NONE, BEFORE, AFTER, BOTH };  
     
     int type = 0;
+    String name = "";
+    String rdfName = "";
     
     private LeetType()
     {
     }
     
-    private LeetType(int t)
+    private LeetType(int t, String n, String rdfN)
     {
         type = t;
+        name = n;
+        rdfName = rdfN;
     }
     
     @Override
     public String toString()
     {
-        if(type>=NONE.type && type<=BOTH.type)
-            return NAMES[type];
-        return "Unknown";
+        return name;
+    }
+    
+    public String toRdfString() {
+        return rdfName;
     }
 
     public int compareTo(LeetType o) {
@@ -59,20 +63,12 @@ public class LeetType implements Comparable<LeetType> {
         return 0;
     }
     
-    public static LeetType fromString(String str) 
-            throws Exception
+    public static LeetType fromRdfString(String str) 
     {
-        if(str.length()==0)
-            return NONE;
-        if(str.equals("off"))
-            return NONE;
-        if(str.equals("before-hashing"))
-            return BEFORE;
-        if(str.equals("after-hashing"))
-            return AFTER;
-        if(str.equals("both"))
-            return BOTH;
-        
-        throw new Exception(String.format("Invalid LeetType '%1s'", str));
+        for(LeetType type : TYPES) {
+            if(str.compareTo(type.rdfName)==0)
+                return type;
+        }
+        return NONE;
     }
 }
