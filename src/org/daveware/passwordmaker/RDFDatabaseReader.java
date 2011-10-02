@@ -261,7 +261,8 @@ public class RDFDatabaseReader implements DatabaseReader {
         
         // TODO: can this program be integrated as a plugin? If so, this will
         // be useful.
-        //String autoPopulate = element.getAttribute("NS1:autoPopulate").trim();
+        String autoPopulate = element.getAttribute("NS1:autoPopulate").trim();
+        account.setAutoPop(autoPopulate.compareTo("true")==0);
         
         // I'm fairly sure I don't need this. I think this stores the tab index
         // of the last time you edited this account.
@@ -281,7 +282,7 @@ public class RDFDatabaseReader implements DatabaseReader {
                 AccountPatternData data = new AccountPatternData();
                 data.setPattern(pattern);
                 data.setType(AccountPatternType.fromString(patternType));
-                data.setEnabled(patternEnabled.compareTo("true")==0 ? true : false);
+                data.setEnabled(patternEnabled.compareTo("true")==0);
                 data.setDesc(patternDesc);
                 account.getPatterns().add(data);
             } else {
@@ -304,10 +305,6 @@ public class RDFDatabaseReader implements DatabaseReader {
                                   HashMap<String, Account> descriptionMap,
                                   HashMap<String, ArrayList<String> > seqMap)
        throws Exception {
-        // Iterate through each SeqData adding the children
-        Account parent = db.getRootAccount();
-        Account child = null;
-
         // List of ID's used to avoid recursion
         ArrayList<String> parentIdStack = new ArrayList<String>();
 
