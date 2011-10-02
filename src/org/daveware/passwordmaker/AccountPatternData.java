@@ -30,6 +30,20 @@ public class AccountPatternData {
     
     public AccountPatternData() {
     }
+    
+    public AccountPatternData(AccountPatternData d) {
+        pattern = d.pattern;
+        type = d.type;
+        enabled = d.enabled;
+        desc = d.desc;
+    }
+    
+    public void copyFrom(AccountPatternData d) {
+        pattern = d.pattern;
+        type = d.type;
+        enabled = d.enabled;
+        desc = d.desc;
+    }
 
     /**
      * @return the pattern
