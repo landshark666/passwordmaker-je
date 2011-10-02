@@ -25,7 +25,7 @@ package org.daveware.passwordmaker;
 public class AccountPatternData {
     private String pattern = "";
     private AccountPatternType type = AccountPatternType.WILDCARD;
-    private boolean enabled = false;
+    private boolean enabled = true;
     private String desc = "";
     
     public AccountPatternData() {
