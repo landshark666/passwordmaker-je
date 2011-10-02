@@ -133,6 +133,10 @@ public final class Account implements Comparable<Account> {
         this.suffix       = a.suffix;
         this.sha256Bug    = a.sha256Bug;
         this.isAFolder    = a.isAFolder;
+        this.patterns.clear();
+        for(AccountPatternData data : a.getPatterns()) {
+            this.patterns.add(new AccountPatternData(data));
+        }
     }
     
     /**
