@@ -229,13 +229,13 @@ public class RDFDatabaseReader implements DatabaseReader {
         account.setDesc(description);
         
         String leetType = element.getAttribute("NS1:whereLeetLB").trim().toLowerCase();
-        account.setLeetType(LeetType.fromString(leetType));
+        account.setLeetType(LeetType.fromRdfString(leetType));
         
         String leetLevel = element.getAttribute("NS1:leetLevelLB").trim();
         account.setLeetLevel(LeetLevel.fromString(leetLevel));
         
         String algorithm = element.getAttribute("NS1:hashAlgorithmLB").trim().toLowerCase();
-        account.setAlgorithm(AlgorithmType.fromString(algorithm));
+        account.setAlgorithm(AlgorithmType.fromRdfString(algorithm));
         account.setHmac(algorithm.contains("hmac-"));
         
         String passwordLength = element.getAttribute("NS1:passwordLength").trim();
