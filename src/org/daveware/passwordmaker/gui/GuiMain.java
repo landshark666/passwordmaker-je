@@ -979,11 +979,6 @@ public class GuiMain implements DatabaseListener {
             seconds = config.getClipboardTimeout();
         }
         
-        if(closeAfterTimer==true)
-        	btnCopyToClipboard.setText("Exiting in");
-        else
-        	btnCopyToClipboard.setText("Erasing clipboard in");
-        
         btnCopyToClipboard.setEnabled(false);
         editCopySeconds.setEnabled(false);
         comboCopyBehavior.setEnabled(false);
