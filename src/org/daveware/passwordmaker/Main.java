@@ -127,7 +127,6 @@ public class Main {
                     
                 case 'n': // no gui
                     cmdLineSettings.nogui = true;
-                    System.out.println("Found nogui");
                     break;
                 
                 case 'q': // quiet mode

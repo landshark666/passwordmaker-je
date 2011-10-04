@@ -17,6 +17,7 @@
  */
 package org.daveware.passwordmaker;
 
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -43,7 +44,9 @@ public class AccountPatternMatcher {
 					return true;
 			}
 			else {
-				System.out.println("Unknown match type " + type.toString() + " for " + account.toString());
+			    Logger logger = Logger.getLogger(AccountPatternMatcher.class.getName());
+			    logger.warning("Unknown pattern match type '" + type.toString() + "' for account '" +
+			            account.getName() + "' id='" + account.getId() + "'");
 				// meh
 			}
 		}

@@ -19,6 +19,7 @@ package org.daveware.passwordmaker;
 
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Logger;
 
 /**
  * Represents a database of accounts.
@@ -28,13 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Dave Marotti
  */
 public class Database {
-    public class FFGlobalSetting {
-        public FFGlobalSetting() { name = ""; value = ""; };
-        public FFGlobalSetting(String n, String v) { name = n; value = v; }
-        public String name;
-        public String value;
-    }
-    
+    private Logger logger = Logger.getLogger(getClass().getName());
     private Account rootAccount = new Account("default", "http://domain.com", "username");
     
     // The settings for the firefox plugin are stored in this file as well. This makes sure they are
@@ -75,7 +70,7 @@ public class Database {
         // some Firefox RDF exports where an RDF:li node gets duplicated multiple times.
         for(Account dup : parent.getChildren()) {
             if(dup == child) {
-                System.out.println("WARNING: Duplicate RDF:li=" + child.getId() + " detected. Dropping duplicate");
+                logger.warning("Duplicate RDF:li=" + child.getId() + " detected. Dropping duplicate");
                 return;
             }
         }
@@ -83,7 +78,7 @@ public class Database {
         int iterationCount = 0;
         final int maxIteration = 0x100000; // if we can't find a hash in 1 million iterations, something is wrong
         while(findAccountById(child.getId())!=null && (iterationCount++ < maxIteration)) {
-            System.out.println("WARNING: ID collision detected on '" + child.getId() + "', regenerating ID");
+            logger.warning("ID collision detected on '" + child.getId() + "', attempting to regenerate ID. iteration=" + iterationCount);
             child.setId(Account.createId(child));
         }
         if(iterationCount>=maxIteration) {
