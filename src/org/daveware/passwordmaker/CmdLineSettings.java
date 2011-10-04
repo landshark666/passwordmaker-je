@@ -17,12 +17,6 @@
  */
 package org.daveware.passwordmaker;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * Represents the commandline settings passed into this program.

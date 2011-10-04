@@ -170,7 +170,6 @@ public class GuiMain implements DatabaseListener {
     private boolean isFiltering = false;
     private boolean showPassword = true;
 
-    private boolean copyAndCloseInvoked = false;
     private boolean closeAfterTimer = false;
 
     
@@ -976,7 +975,6 @@ public class GuiMain implements DatabaseListener {
         // First make sure the seconds-value is valid. If not, set it to 5 and carry on.
         int seconds;
         
-        copyAndCloseInvoked = true;
         closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false : true;
         
         try {

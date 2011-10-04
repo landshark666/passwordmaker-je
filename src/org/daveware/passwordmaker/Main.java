@@ -20,10 +20,6 @@ package org.daveware.passwordmaker;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
