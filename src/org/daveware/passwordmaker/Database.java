@@ -18,6 +18,8 @@
 package org.daveware.passwordmaker;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -39,7 +41,7 @@ public class Database {
     
     // The settings for the firefox plugin are stored in this file as well. This makes sure they are
     // preserved when saving back to the RDF.
-    private ArrayList<Database.FFGlobalSetting> ffGlobalSettings = new ArrayList<Database.FFGlobalSetting>();
+    private HashMap<String, String> globalSettings = new HashMap<String, String>();
     
     // http://stackoverflow.com/questions/1658702/how-do-i-make-a-class-extend-observable-when-it-has-extended-another-class-too
     private final CopyOnWriteArrayList<DatabaseListener> listeners = new CopyOnWriteArrayList<DatabaseListener>();
@@ -141,23 +143,50 @@ public class Database {
     //
     ////////////////////////////////////////////////////////////////////////////
     /**
-     * Adds a firefox global setting to the list.
+     * Sets a firefox global setting. This allows any name and should be avoided. It
+     * is used by the RDF reader.
+     * 
      * @param name The name of the setting.
      * @param value The value.
      */
-    public void addFFGlobalSetting(String name, String value) {
-        ffGlobalSettings.add(new FFGlobalSetting(name, value));
+    public void setGlobalSetting(String name, String value) {
+        String oldValue;
+        
+        // Avoid redundant setting
+        if(globalSettings.containsKey(name)) {
+            oldValue = globalSettings.get(name);
+            if(value.compareTo(oldValue)==0)
+                return;
+        }
+        globalSettings.put(name, value);
+        setDirty(true);
+    }
+
+    /**
+     * The preferred way of setting a global setting.
+     */
+    public void setGlobalSetting(GlobalSettingKey key, String value) {
+        setGlobalSetting(key.toString(), value);
     }
     
     /**
-     * Gets the list of firefox global settings.
+     * Gets the entire set of global settings.
      * @return The list of global settings.
      */
-    public ArrayList<Database.FFGlobalSetting> getFFGlobalSettings() {
-        return ffGlobalSettings;
+    public HashMap<String, String> getGlobalSettings() {
+        return globalSettings;
     }
     
-   
+    /**
+     * The preferred way of getting a global setting value.
+     * @param key The key to obtain.
+     */
+    public String getGlobalSetting(GlobalSettingKey key) {
+        if(globalSettings.containsKey(key.toString()))
+            return globalSettings.get(key.toString());
+        return key.getDefault();
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
     //
     // DATABASE LISTENER METHODS
