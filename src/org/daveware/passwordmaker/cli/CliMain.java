@@ -23,8 +23,9 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 
 import org.daveware.passwordmaker.Account;
-import org.daveware.passwordmaker.Config;
+import org.daveware.passwordmaker.CmdLineSettings;
 import org.daveware.passwordmaker.Database;
+import org.daveware.passwordmaker.GlobalSettingKey;
 import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.RDFDatabaseReader;
 import org.daveware.passwordmaker.SecureCharArray;
@@ -32,18 +33,18 @@ import org.daveware.passwordmaker.Utilities;
 
 public class CliMain {
 
-    Config config = null;
+    CmdLineSettings config = null;
     
-    public CliMain(Config c) {
+    public CliMain(CmdLineSettings c) {
         config = c;
     }
 
     
-    public void clipboardAndWait(SecureCharArray arr) {
+    public void clipboardAndWait(SecureCharArray arr, int numSeconds) {
         Utilities.copyToClipboard(arr);
             
         try {
-            Thread.sleep(1000 * config.getClipboardTimeout());
+            Thread.sleep(1000 * numSeconds);
         } catch(Exception e) {}
 
         Utilities.clearClipboard();    
@@ -79,10 +80,12 @@ public class CliMain {
         char [] secretArray = null;
         int ret = 1;
 
+        /*
         if(config.quiet==true && config.getClipboardTimeout()<5) {
             System.err.println("Quiet mode cannot be used with a clipboard (-c/--clipboard) value of less than 5");
             return 1;
         }
+        */
         
         try {
             RDFDatabaseReader rdfReader = new RDFDatabaseReader();
@@ -108,9 +111,13 @@ public class CliMain {
                             System.out.println("");
                         }
                         
-                        if(config.getClipboardTimeout()>=1) {
-                            clipboardAndWait(output);
+                        int numSeconds = 10;
+                        try {
+                            numSeconds = Integer.parseInt(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+                        } catch(Exception e) {
+                            numSeconds = 10;
                         }
+                        clipboardAndWait(output, numSeconds);
                         
                         ret = 0;
                     }
