@@ -20,17 +20,19 @@ package org.daveware.passwordmaker.gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Random;
 
 import org.daveware.passwordmaker.Account;
-import org.daveware.passwordmaker.Config;
+import org.daveware.passwordmaker.CmdLineSettings;
 import org.daveware.passwordmaker.Database;
 import org.daveware.passwordmaker.DatabaseListener;
+import org.daveware.passwordmaker.GlobalSettingKey;
 import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.RDFDatabaseReader;
 import org.daveware.passwordmaker.RDFDatabaseWriter;
 import org.daveware.passwordmaker.SecureCharArray;
 import org.daveware.passwordmaker.Utilities;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -40,12 +42,16 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.ArmEvent;
+import org.eclipse.swt.events.ArmListener;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -78,18 +84,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.ArmListener;
-import org.eclipse.swt.events.ArmEvent;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
 
 /**
  * Implements the main window for PasswordMakerJE.
@@ -104,7 +103,7 @@ public class GuiMain implements DatabaseListener {
     private final static String ACCOUNT_FILTER_DESC = "type filter text";
     private final static String TITLE_STRING = "PasswordMaker Java Edition";
     
-    private final static String EXIT_PROMPT = "Your current passwords have been modified, would you like to save?";
+    private final static String EXIT_PROMPT = "Your current passwords and/or settings have been modified, would you like to save?";
 
     protected Shell shlPasswordMaker;
     private Text editAccount;
@@ -137,6 +136,10 @@ public class GuiMain implements DatabaseListener {
     private MenuItem menuItemNewGroup;
     private MenuItem menuItemEditGroup;
     private MenuItem menuItemDeleteGroup;
+    private MenuItem menuItemSave;
+    private MenuItem menuItemSaveAs;
+    private Text textFilename;
+    private ControlDecoration secondsDecoration;
     
     
     //-------- BEGIN RESOURCES THAT MUST BE DISPOSED OF ---------------------------------
@@ -159,7 +162,7 @@ public class GuiMain implements DatabaseListener {
     private Font italicsSearchFont = null;
     
     
-    private Config config;
+    private CmdLineSettings cmdLineSettings;
     private Account selectedAccount = null;
     private PasswordMaker pwm = null;
     private Database db = null;
@@ -169,21 +172,10 @@ public class GuiMain implements DatabaseListener {
 
     private boolean copyAndCloseInvoked = false;
     private boolean closeAfterTimer = false;
-    private MenuItem menuItemSave;
-    private MenuItem menuItemSaveAs;
-    private Text textFilename;
 
     
-    public GuiMain(Config c) {
-        config = c;
-        
-        try {
-            config.load();
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            config.loadDefaults();
-        }
+    public GuiMain(CmdLineSettings c) {
+        cmdLineSettings = c;
     }
     
     /**
@@ -206,12 +198,13 @@ public class GuiMain implements DatabaseListener {
         
         setupFonts();
         setupTree();
+        setupDecorators();
         
         shlPasswordMaker.open();
         shlPasswordMaker.layout();
 
         pwm = new PasswordMaker();
-        loadFromConfig();
+        loadFromCmdLineSettings();
         
         regeneratePasswordAndDraw();
 
@@ -220,17 +213,15 @@ public class GuiMain implements DatabaseListener {
                 display.sleep();
             }
         }
-
-        if(copyAndCloseInvoked==false) {
-        	saveSettingsToConfig();
+    }
+    
+    protected void setupDecorators() {
+        ControlDecoration [] decors = { secondsDecoration };
+        Image image = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage();
+        for(ControlDecoration dec : decors) {
+            dec.setImage(image);
+            dec.hide();
         }
-        
-        // TODO: config.save() should probably be moved to Main
-        try {
-            config.save();
-        } catch(Exception e) {
-            e.printStackTrace();
-                }
     }
     
     protected void setupFonts() {
@@ -309,8 +300,8 @@ public class GuiMain implements DatabaseListener {
         eyeImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye.png");
         eyeClosedImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye_closed.png");
 
-        shlPasswordMaker.setMinimumSize(new Point(745, 345));
-        shlPasswordMaker.setSize(782, 302);
+        shlPasswordMaker.setMinimumSize(new Point(795, 345));
+        shlPasswordMaker.setSize(795, 345);
         shlPasswordMaker.setText(TITLE_STRING);
         shlPasswordMaker.setLayout(new FormLayout());
         
@@ -517,7 +508,7 @@ public class GuiMain implements DatabaseListener {
         
         Composite compositeButtons = new Composite(grpInput, SWT.NONE);
         GridLayout gl_compositeButtons = new GridLayout(4, false);
-        gl_compositeButtons.horizontalSpacing = 0;
+        gl_compositeButtons.horizontalSpacing = 7;
         gl_compositeButtons.verticalSpacing = 0;
         gl_compositeButtons.marginWidth = 0;
         gl_compositeButtons.marginHeight = 0;
@@ -532,21 +523,30 @@ public class GuiMain implements DatabaseListener {
                 onCopyToClipboard();
             }
         });
-        btnCopyToClipboard.setText("Copy to clipboard and ");
+        btnCopyToClipboard.setText("Copy to clipboard, then");
         
         comboCopyBehavior = new Combo(compositeButtons, SWT.READ_ONLY);
         comboCopyBehavior.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         comboCopyBehavior.setToolTipText("");
-        comboCopyBehavior.setItems(new String[] {"erase from clipboard", "close PasswordMakerJE in"});
+        comboCopyBehavior.setItems(new String[] {"erase clipboard in", "close app and erase clipboard in"});
         comboCopyBehavior.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         comboCopyBehavior.select(0);
         
         editCopySeconds = new Text(compositeButtons, SWT.BORDER);
+        editCopySeconds.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent arg0) {
+                onSecondsFocusLost();
+            }
+        });
         editCopySeconds.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editCopySeconds.setText("5");
         GridData gd_editCloseSeconds = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
         gd_editCloseSeconds.widthHint = 33;
         editCopySeconds.setLayoutData(gd_editCloseSeconds);
+        
+        secondsDecoration = new ControlDecoration(editCopySeconds, SWT.LEFT | SWT.TOP);
+        secondsDecoration.setDescriptionText("The number of seconds must be a positive value");
         
         Label lblSeconds = new Label(compositeButtons, SWT.NONE);
         lblSeconds.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
@@ -831,7 +831,7 @@ public class GuiMain implements DatabaseListener {
                         	btnCopyToClipboard.setEnabled(true);
                         	comboCopyBehavior.setEnabled(true);
                         	editCopySeconds.setEnabled(true);
-                        	editCopySeconds.setText(Integer.toString(config.getClipboardTimeout()));
+                        	editCopySeconds.setText(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
                         }
                     }
                 });
@@ -840,21 +840,29 @@ public class GuiMain implements DatabaseListener {
     }
     
     /**
+     * Sets the various fields of the GUI based on the settings in the database.
+     */
+    private void setGuiFromGlobalSettings() {
+        editCopySeconds.setText(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+        btnShowPassword.setSelection(db.getGlobalSetting(GlobalSettingKey.SHOW_GEN_PW).compareTo("true")==0);
+        onShowPasswordClicked();  // due to manual "setSelection" not triggering an event
+    }
+    
+    /**
      * Loads the various fields with data from the config files.
      */
-    private void loadFromConfig() {
-        editCopySeconds.setText(Integer.toString(config.getClipboardTimeout()));
-        if(config.matchUrl!=null)
-        	editUrl.setText(config.matchUrl);
-        if(config.inputFilename!=null) {
-            openFile(config.inputFilename);
+    private void loadFromCmdLineSettings() {
+        if(cmdLineSettings.matchUrl!=null)
+        	editUrl.setText(cmdLineSettings.matchUrl);
+        if(cmdLineSettings.inputFilename!=null) {
+            openFile(cmdLineSettings.inputFilename);
         }
         else {
             newFile();
         }
         
         // Only attempt an initial find if something was passed on the commandline
-        if(config.matchUrl!=null && config.matchUrl.length()>0)
+        if(cmdLineSettings.matchUrl!=null && cmdLineSettings.matchUrl.length()>0)
             findAccount();
     }
 
@@ -893,6 +901,7 @@ public class GuiMain implements DatabaseListener {
             // messages - I'm not exactly sure why.
             accountTreeViewer.setInput(db);
             selectFirstAccount();
+            setGuiFromGlobalSettings();
         } catch(Exception e) {
             // This REALLY should be impossible ... but, handle it anyway
             MBox.showError(shlPasswordMaker, "Unable to create default account.\n" + e.getMessage());
@@ -971,12 +980,19 @@ public class GuiMain implements DatabaseListener {
         closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false : true;
         
         try {
-            config.setClipboardTimeout(Integer.parseInt(editCopySeconds.getText()));
-            seconds = config.getClipboardTimeout();
+            seconds = Integer.parseInt(editCopySeconds.getText());
+            if(seconds<1) {
+                secondsDecoration.show();
+                editCopySeconds.setFocus();
+                return;
+            }
+            
+            secondsDecoration.hide();
         }
         catch(Exception ee) {
-            editCopySeconds.setText(Integer.toString(config.getClipboardTimeout()));
-            seconds = config.getClipboardTimeout();
+            secondsDecoration.show();
+            editCopySeconds.setFocus();
+            return;
         }
         
         btnCopyToClipboard.setEnabled(false);
@@ -1180,15 +1196,35 @@ public class GuiMain implements DatabaseListener {
         }
     }
     
+    private void onSecondsFocusLost() {
+        int numSeconds;
+        
+        try {
+            numSeconds = Integer.parseInt(editCopySeconds.getText());
+            if(numSeconds<1) {
+                // TODO: should this also check for some kind of max?
+                secondsDecoration.show();
+                return;
+            }
+            
+            db.setGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT, editCopySeconds.getText());
+            secondsDecoration.hide();
+        } catch(Exception e) {
+            secondsDecoration.show();
+        }
+    }
+    
     /**
      * Invoked when the eyeball is clicked.
      */
     private void onShowPasswordClicked() {
-    	showPassword = btnShowPassword.getSelection() ? false : true;
+    	showPassword = btnShowPassword.getSelection();
     	if(showPassword)
     		btnShowPassword.setImage(eyeImage);
     	else
     		btnShowPassword.setImage(eyeClosedImage);
+    	
+   	    db.setGlobalSetting(GlobalSettingKey.SHOW_GEN_PW, Boolean.toString(showPassword));
     	
     	regeneratePasswordAndDraw();
     }
@@ -1241,11 +1277,12 @@ public class GuiMain implements DatabaseListener {
             textFilename.setText(filename);
             
             selectFirstAccount();
+            setGuiFromGlobalSettings();
             
             db.setDirty(false);
             ret = true;
         } catch(Exception ex) {
-            config.inputFilename = "";
+            cmdLineSettings.inputFilename = "";
             db = new Database();
             db.addDatabaseListener(this);
             accountTreeViewer.setInput(db);
@@ -1317,13 +1354,13 @@ public class GuiMain implements DatabaseListener {
         
         // If we don't have a filename yet, call saveAs() which will call this function
         // in return with a filename set.
-        if(config.inputFilename.length()==0) {
+        if(cmdLineSettings.inputFilename.length()==0) {
             return saveFileAs();
         }
         
         try {
             RDFDatabaseWriter out = new RDFDatabaseWriter();
-            File newFile = new File(config.inputFilename);
+            File newFile = new File(cmdLineSettings.inputFilename);
             if(newFile.exists()==false)
                 newFile.createNewFile();
             
@@ -1333,7 +1370,7 @@ public class GuiMain implements DatabaseListener {
             ret = true;
         }
         catch(Exception e) {
-            MBox.showError(shlPasswordMaker, "Unable to save to " + config.inputFilename + ".\n" + e.getMessage());
+            MBox.showError(shlPasswordMaker, "Unable to save to " + cmdLineSettings.inputFilename + ".\n" + e.getMessage());
         }
         
         return ret;
@@ -1350,30 +1387,20 @@ public class GuiMain implements DatabaseListener {
         fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
         String selected = fd.open();
         if(selected!=null && selected.length()>0) {
-            String oldFilename = config.inputFilename;
-            config.inputFilename = selected;
+            String oldFilename = cmdLineSettings.inputFilename;
+            cmdLineSettings.inputFilename = selected;
             if(saveFile()==true) {
-                textFilename.setText(config.inputFilename);
+                textFilename.setText(cmdLineSettings.inputFilename);
                 return true;
             }
             
             // it failed if we get here, restore the filename
-            config.inputFilename = oldFilename;
+            cmdLineSettings.inputFilename = oldFilename;
         }
         
-        textFilename.setText(config.inputFilename);
+        textFilename.setText(cmdLineSettings.inputFilename);
         
         return false;
-    }
-
-    /**
-     * Writes the current settings back to the config file.
-     */
-    private void saveSettingsToConfig() {
-    	try {
-    		config.setClipboardTimeout(Integer.parseInt(editCopySeconds.getText()));
-    	} catch(Exception e) {
-    	}
     }
 
     /**
