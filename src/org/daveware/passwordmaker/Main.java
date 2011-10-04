@@ -71,13 +71,9 @@ public class Main {
                     "\t-n, --nogui                 Use the console instead of the GUI\n" +
                     "\t-q, --quiet                 Quiet mode. Do not print the final password to the\n" +
                     "\t                            screen. This is only valid with -c.\n" +
-                    "\n" +
-                    "Miscellaneous Settings\n" +
-                    "\t-h, --home                  Use this directory as the user's home directory\n" +
-                    "\t                            instead of the one obtained from the system.\n" +
                     "\n";
 
-    private Config config = null;
+    private CmdLineSettings cmdLineSettings = null;
 
     /**
      * Main constructor.
@@ -85,8 +81,8 @@ public class Main {
      * Creates a config file and initializes it to needed defaults.
      */
     public Main() {
-        config = new Config();
-        config.progName = this.getClass().toString();
+        cmdLineSettings = new CmdLineSettings();
+        cmdLineSettings.progName = this.getClass().toString();
         
         // The config file is only loaded by the GUI for now
     }
@@ -105,7 +101,6 @@ public class Main {
                 new LongOpt("nogui",     LongOpt.NO_ARGUMENT,       null, 'n'),
                 new LongOpt("quiet",     LongOpt.NO_ARGUMENT,       null, 'q'),
                 new LongOpt("url",       LongOpt.REQUIRED_ARGUMENT, null, 'u'),
-                new LongOpt("home",      LongOpt.REQUIRED_ARGUMENT, null, 'd'),
         };
         int c;
         Getopt g = new Getopt("pwmje", args, "-:hf:nc:u:qd:", longopts);
@@ -114,6 +109,8 @@ public class Main {
         while((c = g.getopt())!=-1) {
             switch(c) {
                 case 'c': // Set the number of seconds to hold the password on the clipboard before erasing and exiting
+                    // TODO: option 'c' is broken
+                    /*
                     try {
                         config.setClipboardTimeout(Integer.parseInt(g.getOptarg()));
                         if(config.getClipboardTimeout() < 5)
@@ -121,6 +118,7 @@ public class Main {
                     } catch(Exception e) {
                         throw new Exception("Invalid -c/--clipboard value, must be numeric value of 5 or greater: " + g.getOptarg());
                     }
+                    */
                     break;
                     
                 case 'h': // print help
@@ -128,26 +126,21 @@ public class Main {
                     break;
 
                 case 'f': // set the input filename
-                    config.inputFilename = g.getOptarg();
+                    cmdLineSettings.inputFilename = g.getOptarg();
                     break;
                     
                 case 'n': // no gui
-                    config.nogui = true;
+                    cmdLineSettings.nogui = true;
                     System.out.println("Found nogui");
                     break;
                 
                 case 'q': // quiet mode
-                    config.quiet = true;
+                    cmdLineSettings.quiet = true;
                     break;
                 
                 case 'u': // set the url to search with
-                    config.matchUrl = g.getOptarg();
+                    cmdLineSettings.matchUrl = g.getOptarg();
                     break;
-                    
-                case 'd':
-                	// setHomeDir throws an exception if the homedir cannot be used
-                	config.setHomeDir(g.getOptarg());
-                	break;
             }
         }
     }
@@ -158,22 +151,18 @@ public class Main {
         // Dumps exception upon error
         parseCmdLine(args);
         
-        // Establish the user's home directory if it was not overridden by the cmdline
-        if(config.getSettingsDir()==null)
-        	config.setHomeDir(System.getProperty("user.home"));
-
         // Look for invalid configurations...
-        if(config.nogui==true) {
-            if(config.inputFilename==null || config.matchUrl==null) {
+        if(cmdLineSettings.nogui==true) {
+            if(cmdLineSettings.inputFilename==null || cmdLineSettings.matchUrl==null) {
                 System.err.println("When using -n/--nogui, you must use -f and -u");
                 return 1;
             }
             
-            CliMain cli = new CliMain(config);
+            CliMain cli = new CliMain(cmdLineSettings);
             ret = cli.run();
         }
         else {
-            GuiMain gui = new GuiMain(config);
+            GuiMain gui = new GuiMain(cmdLineSettings);
             ret = gui.run();
         }
         
@@ -184,7 +173,7 @@ public class Main {
      * Displays the help string and exits.
      */
     private void showHelpAndExit(int exitCode) {
-        System.err.format(helpStr, config.progName);
+        System.err.format(helpStr, cmdLineSettings.progName);
         System.exit(exitCode);
     }
 }
