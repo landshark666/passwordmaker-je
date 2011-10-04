@@ -154,7 +154,7 @@ public class RDFDatabaseReader implements DatabaseReader {
                             for(int iAttribute=0; iAttribute < mapLength; iAttribute++) {
                                 Node node = nodeMap.item(iAttribute);
                                 if(node.getNodeName().startsWith("NS1:"))
-                                    db.addFFGlobalSetting(node.getNodeName(), node.getNodeValue());
+                                    db.setGlobalSetting(node.getNodeName(), node.getNodeValue());
                             }
                         }
                     } catch(IncompatibleException e) {

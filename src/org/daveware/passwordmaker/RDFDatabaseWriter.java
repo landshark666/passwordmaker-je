@@ -202,8 +202,8 @@ public class RDFDatabaseWriter implements DatabaseWriter {
 	    
 	    writer.writeAttribute("RDF:about", RDFDatabaseReader.FF_GLOBAL_SETTINGS_URI);
 	    
-	    for(Database.FFGlobalSetting setting : db.getFFGlobalSettings()) {
-	        writer.writeAttribute(setting.name, setting.value);
+	    for(String key : db.getGlobalSettings().keySet()) {
+	        writer.writeAttribute(key, db.getGlobalSettings().get(key));
 	    }
 	    
 	    writer.writeEndElement();
