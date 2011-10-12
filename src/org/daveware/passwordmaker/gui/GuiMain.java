@@ -977,6 +977,24 @@ public class GuiMain implements DatabaseListener {
         
         closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false : true;
         
+        // Perform a dirty check if the app will close after the operation
+        if(closeAfterTimer && db.isDirty()) {
+            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+            case SWT.YES:
+                // Only continue if the save succeeded
+                if(saveFile()!=true)
+                    return;
+                break;
+                
+            case SWT.NO:
+                break;
+                
+            case SWT.CANCEL:
+                // user aborted
+                return;
+            }
+        }
+        
         try {
             seconds = Integer.parseInt(editCopySeconds.getText());
             if(seconds<1) {
@@ -1352,7 +1370,7 @@ public class GuiMain implements DatabaseListener {
         
         // If we don't have a filename yet, call saveAs() which will call this function
         // in return with a filename set.
-        if(cmdLineSettings.inputFilename.length()==0) {
+        if(cmdLineSettings.inputFilename==null || cmdLineSettings.inputFilename.length()==0) {
             return saveFileAs();
         }
         
@@ -1394,9 +1412,9 @@ public class GuiMain implements DatabaseListener {
             
             // it failed if we get here, restore the filename
             cmdLineSettings.inputFilename = oldFilename;
+            textFilename.setText(cmdLineSettings.inputFilename);
         }
         
-        textFilename.setText(cmdLineSettings.inputFilename);
         
         return false;
     }
