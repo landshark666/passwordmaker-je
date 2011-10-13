@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=windows-1250">
+  <meta name="generator" content="PSPad editor, www.pspad.com">
+  <title></title>
+<!-- Strength calculator code ripped from PasswordMaker source, do not run in eclipse since it yields
+     false values. use chrome/firefox instead. -->
+    <script type="text/javascript">
+function getPasswordStrength() {
+
+  var pw = document.form1.instring.value; //passwordGenerated.value;
+
+  if (pw.length == 1 || pw.length == 2)
+    return 0;
+
+  // char frequency
+  var uniques = new Array();
+  for (var i=0;i<pw.length;i++) {
+    for (var j=0; j<uniques.length; j++) {
+      if (i==j)
+        continue;
+      if (pw[i] == uniques[j])
+        break;
+    }
+    if (j==uniques.length)
+      uniques.push(pw[i]);
+  }
+  var r0 = uniques.length / pw.length;
+  if (uniques.length == 1)
+    r0 = 0;
+
+
+  //length of the password - 1pt per char over 5, up to 15 for 10 pts total
+  var r1 = pw.length;
+  if (r1 >= 15)
+    r1 = 10;
+  else if (r1 < 5)
+    r1 = -5;
+  else
+    r1 -= 5;
+
+  var quarterLen = Math.round(pw.length / 4);
+
+  //ratio of numbers in the password
+  var c = pw.replace (/[0-9]/g, "");
+  var num=(pw.length - c.length);
+  c = num > quarterLen*2 ? quarterLen : Math.abs(quarterLen-num);
+  var r2 = 1 - (c / quarterLen);
+
+  //ratio of symbols in the password
+  c = pw.replace (/\W/g, "");
+  num=(pw.length - c.length);
+  c = num > quarterLen*2 ? quarterLen : Math.abs(quarterLen-num);
+  var r3 = 1 - (c / quarterLen);
+
+  //ratio of uppercase in the password
+  c = pw.replace (/[A-Z]/g, "");
+  num=(pw.length - c.length);
+  c = num > quarterLen*2 ? quarterLen : Math.abs(quarterLen-num);
+  var r4 = 1 - (c / quarterLen);
+
+  //ratio of lowercase in the password
+  c = pw.replace (/[a-z]/g, "");
+  num=(pw.length - c.length);
+  c = num > quarterLen*2 ? quarterLen : Math.abs(quarterLen-num);
+  var r5 = 1 - (c / quarterLen);
+
+    document.form1.debug1.value = r2.toString() + ",  " + r3.toString() + ",  " + r4.toString() + ",  " + r5.toString();
+  //variety (94 standard chars)
+  //var r6 = uniques.length >= 100 ? 0 : (100-uniques.length)/10;       // range: 0-10
+
+  /*dump("r0=" + r0 + "\n");
+  dump("r1=" + r1 + "\n");
+  dump("r2=" + r2 + "\n");
+  dump("r3=" + r3 + "\n");
+  dump("r4=" + r4 + "\n");
+  dump("r5=" + r5 + "\n");
+  //dump("r6=" + r6 + "\n");
+  dump("pwstrength = " + ((((r0+r2+r3+r4+r5) / 5) *100)+r1) + "\n");*/
+  var pwstrength = (((r0+r2+r3+r4+r5) / 5) *100) + r1;
+
+  // make sure we're give a value between 0 and 100
+  if (pwstrength < 0)
+    pwstrength = 0;
+  
+  if (pwstrength > 100)
+    pwstrength = 100;
+  
+  document.form1.outstring.value = pwstrength;
+  return pwstrength.toString();
+}
+        </script>
+  </head>
+  <body>
+<form name="form1" method="post">
+    <input name="instring" type="text" value="" size="30" />
+    <input type="button" name="Str" value="Calc Strength" onClick="getPasswordStrength();" />
+    <input name="outstring" type="text" value="" size="30" />
+    <br>
+    <input name="debug1" type="text" size="150" />
+</form>
+  </body>
+</html>
