@@ -435,6 +435,11 @@ public class GuiMain implements DatabaseListener {
         lblUsername.setText("Username:");
         
         editUsername = new Text(grpInput, SWT.BORDER);
+        editUsername.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent arg0) {
+                regeneratePasswordAndDraw();
+            }
+        });
         editUsername.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         
@@ -778,8 +783,15 @@ public class GuiMain implements DatabaseListener {
         
         try {
         	if(selectedAccount!=null) {
+                // If the username text has been edited by the user then it will need to be updated
+                // in the account. But since the account shouldn't be saved that way, use a temporary
+                // account.
+                Account tempAccount = new Account();
+                tempAccount.copySettings(selectedAccount);
+                tempAccount.setUsername(editUsername.getText());
+                
         		mpw = new SecureCharArray(editMP.getText());
-        		output = pwm.makePassword(mpw, selectedAccount);
+        		output = pwm.makePassword(mpw, tempAccount);
         	}
         	else {
         		output = new SecureCharArray();
@@ -1341,6 +1353,7 @@ public class GuiMain implements DatabaseListener {
     private void regeneratePasswordAndDraw() {
        SecureCharArray output = null;
        GC gc = null;
+       
        
        try {
            gc = new GC(passwordImage);
