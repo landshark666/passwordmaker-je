@@ -186,6 +186,20 @@ public class PasswordMakerTest {
     public void tearDown() {
     }
 
+    @Test
+    public void testCalcStrength() {
+        double [] expected = { 43.0, 77.0, 77.60000000000001, 86.8, 70.0, 20.0, 32.0, 0.0, 95.0 };
+        String [] input = { "IGp&fwNs", "Ru32j#82@@!m", "JHxZn$&`Xn8JDy-Q(@VeG6k(b", "Lfen/ntAlTcA21O'1{sI$b7_1", "!@#$%^&*()[]asdfghjk345678", "ki{_-", "AAABa", "AAA", "aA1!" };
+
+        for(int i=0; i<input.length; i++) {
+            double strength = PasswordMaker.calcPasswordStrength(new SecureCharArray(input[i].getBytes()));
+            if(strength != expected[i]) {
+                fail(input[i] + " failed, expected " + expected[i] + " but got " + strength);
+            }
+        }
+    }
+       
+    
     /**
      * Test of rstr2any method, of class PasswordMaker.
      */
