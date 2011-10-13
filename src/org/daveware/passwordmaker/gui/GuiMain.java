@@ -1111,21 +1111,30 @@ public class GuiMain implements DatabaseListener {
      */
     private void onEditAccount() {
     	AccountDlg dlg = null;
+    	SecureCharArray mpw = null;
     	if(selectedAccount!=null) {
-    		dlg = new AccountDlg(selectedAccount);
+    	    try {
+        	    mpw = new SecureCharArray(editMP.getText());
+        		dlg = new AccountDlg(selectedAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
     		
-    		// A copy of the edited account is returned if "ok" is clicked.
-    		Account newAccount = dlg.open();
-    		if(newAccount!=null) {
-    		    selectedAccount.copySettings(newAccount);
-    		    db.changeAccount(selectedAccount);
-    		    //accountTreeViewer.refresh(account, true);
-    		    
-    		    // The tree already has the account selected. Applying the same selection actually
-    		    // has the side-effect of unselecting the account. So instead just invoke the selectAccount()
-    		    // method which is normally invoked by the tree causing the selection.
-    		    selectAccount(selectedAccount);
-    		}
+        		// A copy of the edited account is returned if "ok" is clicked.
+        		Account newAccount = dlg.open();
+        		if(newAccount!=null) {
+        		    selectedAccount.copySettings(newAccount);
+        		    db.changeAccount(selectedAccount);
+        		    //accountTreeViewer.refresh(account, true);
+        		    
+        		    // The tree already has the account selected. Applying the same selection actually
+        		    // has the side-effect of unselecting the account. So instead just invoke the selectAccount()
+        		    // method which is normally invoked by the tree causing the selection.
+        		    selectAccount(selectedAccount);
+        		}
+            } finally {
+                if(mpw!=null) {
+                    mpw.erase();
+                    mpw = null;
+                }
+            }
     	}
     }
 
@@ -1198,7 +1207,13 @@ public class GuiMain implements DatabaseListener {
 
         // Create a new blank account with default settings and the dialog
         Account newAccount = new Account();
-        dlg = new AccountDlg(newAccount);
+        SecureCharArray mpw = new SecureCharArray(editMP.getText());
+        try {
+            dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
+        } finally {
+            mpw.erase();
+            mpw = null;
+        }
             
         // A copy of the account is returned if "ok" is clicked.
         newAccount = dlg.open();
@@ -1335,8 +1350,7 @@ public class GuiMain implements DatabaseListener {
            
            if(selectedAccount!=null && selectedAccount.isFolder()==false && editMP.getText().length()>0) {
                output = generateOutput();
-
-               if(showPassword==true) {
+               if(output!=null && showPassword==true) {
     	           gc.setFont(passwordFont);
     	           int x = 0;
     	           int xPos = 5;

@@ -22,6 +22,8 @@ import org.daveware.passwordmaker.AccountPatternData;
 import org.daveware.passwordmaker.AlgorithmType;
 import org.daveware.passwordmaker.LeetLevel;
 import org.daveware.passwordmaker.LeetType;
+import org.daveware.passwordmaker.PasswordMaker;
+import org.daveware.passwordmaker.SecureCharArray;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -37,6 +39,8 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
@@ -58,12 +62,27 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
 
 public class AccountDlg {
+    static final String INVALID_ACCOUNT_STRING = "Invalid account";
+    static final String INVALID_MPW_STRING = "Invalid master password";
+    
 	Account account = null;
 	AccountPatternData selectedPattern = null;
+	SecureCharArray mpw = null;
+	PasswordMaker pwm = null;
 	
+	boolean showPassword = true;
 	boolean okClicked = false;
+	int lastPasswordStrength = 0;
 	
 	protected Shell shlAccountSettings;
 	private Text textName;
@@ -94,7 +113,20 @@ public class AccountDlg {
     private ControlDecoration nameDecoration;
     private ControlDecoration lengthDecoration;
     private ControlDecoration charactersDecoration;
-	
+    private Canvas canvasOutput;
+    private Font pwFont;
+    private ProgressBar passwordStrengthMeter;
+    
+    private Image eyeImage = null;
+    private Image eyeClosedImage = null;
+    
+    //-------- BEGIN RESOURCES THAT MUST BE DISPOSED OF ---------------------------------
+    private Image passwordImage = null;
+    private Composite composite_1;
+    private Label lblGeneratedPassword;
+    private Button btnShowPassword;
+    //-------- End RESOURCES THAT MUST BE DISPOSED OF -----------------------------------
+
 	/**
 	 * @wbp.parser.constructor
 	 * 
@@ -109,8 +141,15 @@ public class AccountDlg {
 		}
 	}
 	
-	public AccountDlg(Account acc) {
-		account = new Account();
+	public AccountDlg(Account acc, SecureCharArray mpw, Font pwFont, PasswordMaker pwm, Image eyeImage, Image eyeClosedImage, boolean showPassword) {
+	    this.mpw = mpw;
+	    this.showPassword = showPassword;
+	    this.pwFont = pwFont;
+	    this.pwm = pwm;
+	    this.eyeImage = eyeImage;
+	    this.eyeClosedImage = eyeClosedImage;
+	    
+	    account = new Account();
 		// edit mode
 		if(acc!=null) {
     		account.copySettings(acc);
@@ -226,6 +265,15 @@ public class AccountDlg {
 		setupPatternTable();
 		setupDecorators();
 		
+		if(showPassword) {
+		    btnShowPassword.setImage(eyeImage);
+		    btnShowPassword.setSelection(true);
+		}
+		else {
+            btnShowPassword.setImage(eyeClosedImage);
+            btnShowPassword.setSelection(false);
+		}
+		
 		if(account.isFolder()) {
 		    tbtmUrl.dispose();
 		    tbtmUrl = null;
@@ -258,6 +306,11 @@ public class AccountDlg {
 		// "SHEET" is working for now, not gonna mess with it. I've heard this makes it arrive on the
 		// screen in a mac-way on OSX. On windows this seems to properly make it modal.
 		shlAccountSettings = new Shell(Display.getDefault(), SWT.SHEET);
+		shlAccountSettings.addDisposeListener(new DisposeListener() {
+		    public void widgetDisposed(DisposeEvent arg0) {
+		        onDisposing();
+		    }
+		});
 		shlAccountSettings.setSize(728, 501);
 		shlAccountSettings.setText("Account Settings");
 		shlAccountSettings.setLayout(new FormLayout());
@@ -343,6 +396,11 @@ public class AccountDlg {
 		lblUseTheFollowing.setText("Use the following URL/text to calculate the generated password:");
 		
 		textUseUrl = new Text(compositeUrls, SWT.BORDER);
+		textUseUrl.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		textUseUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		checkAutoPop = new Button(compositeUrls, SWT.CHECK);
@@ -437,6 +495,11 @@ public class AccountDlg {
 		lblUsername.setText("Username:");
 		
 		textUsername = new Text(composite_2, SWT.BORDER);
+		textUsername.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		textUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
 		
 		Label lblUseLt = new Label(composite_2, SWT.NONE);
@@ -445,6 +508,12 @@ public class AccountDlg {
 		lblUseLt.setText("Use l33t:");
 		
 		comboUseLeet = new Combo(composite_2, SWT.READ_ONLY);
+		comboUseLeet.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		comboUseLeet.setItems(new String[] {"not at all", "before generating password", "after generating password", "before and after generating password"});
 		comboUseLeet.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		comboUseLeet.select(0);
@@ -455,6 +524,12 @@ public class AccountDlg {
 		lblLtLevel.setText("l33t Level:");
 		
 		comboLeetLevel = new Combo(composite_2, SWT.READ_ONLY);
+		comboLeetLevel.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		comboLeetLevel.setEnabled(false);
 		comboLeetLevel.setItems(new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9"});
 		comboLeetLevel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -466,6 +541,12 @@ public class AccountDlg {
 		lblHashAlgorithm.setText("Hash Algorithm:");
 		
 		comboHashAlgorithm = new Combo(composite_2, SWT.READ_ONLY);
+		comboHashAlgorithm.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		comboHashAlgorithm.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
@@ -477,6 +558,11 @@ public class AccountDlg {
 		lblPasswordLength.setText("Password Length:");
 		
 		textPasswordLength = new Text(composite_2, SWT.BORDER);
+		textPasswordLength.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		textPasswordLength.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		lengthDecoration = new ControlDecoration(textPasswordLength, SWT.LEFT | SWT.TOP);
@@ -491,6 +577,11 @@ public class AccountDlg {
 		lblCharacters.setText("Characters:");
 		
 		comboCharacters = new Combo(composite_2, SWT.NONE);
+		comboCharacters.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		comboCharacters.setItems(new String[] {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./", "0123456789abcdef", "0123456789", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./", "Random"});
 		GridData gd_comboCharacters = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_comboCharacters.widthHint = 200;
@@ -509,6 +600,11 @@ public class AccountDlg {
 		lblModifier.setText("Modifier:");
 		
 		textModifier = new Text(composite_2, SWT.BORDER);
+		textModifier.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		textModifier.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
@@ -520,6 +616,11 @@ public class AccountDlg {
 		lblPasswordPrefix.setText("Password Prefix:");
 		
 		textPrefix = new Text(composite_2, SWT.BORDER);
+		textPrefix.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		textPrefix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
@@ -530,6 +631,11 @@ public class AccountDlg {
 		lblPasswordSuffix.setText("Password Suffix:");
 		
 		textSuffix = new Text(composite_2, SWT.BORDER);
+		textSuffix.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		        updatePasswordStrengthMeter();
+		    }
+		});
 		textSuffix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(composite_2, SWT.NONE);
 		new Label(composite_2, SWT.NONE);
@@ -546,23 +652,88 @@ public class AccountDlg {
 		grpPasswordDetails.setLayoutData(fd_grpPasswordDetails);
 		
 		Label lblPasswordStrength = new Label(grpPasswordDetails, SWT.NONE);
+		lblPasswordStrength.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblPasswordStrength.setText("Password Strength:");
 		
-		ProgressBar progressPasswordStrength = new ProgressBar(grpPasswordDetails, SWT.NONE);
-		progressPasswordStrength.setMaximum(10);
-		progressPasswordStrength.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		passwordStrengthMeter = new ProgressBar(grpPasswordDetails, SWT.NONE);
+		passwordStrengthMeter.setState(SWT.ERROR);
+		passwordStrengthMeter.addControlListener(new ControlAdapter() {
+		    @Override
+		    public void controlResized(ControlEvent arg0) {
+		        passwordStrengthMeter.setSelection(lastPasswordStrength);
+		    }
+		});
+		passwordStrengthMeter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Label lblGeneratedPassword = new Label(grpPasswordDetails, SWT.NONE);
-		lblGeneratedPassword.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		composite_1 = new Composite(grpPasswordDetails, SWT.NONE);
+		composite_1.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		GridLayout gl_composite_1 = new GridLayout(1, false);
+		gl_composite_1.verticalSpacing = 0;
+		gl_composite_1.marginWidth = 0;
+		gl_composite_1.marginHeight = 0;
+		gl_composite_1.horizontalSpacing = 0;
+		composite_1.setLayout(gl_composite_1);
+		
+		lblGeneratedPassword = new Label(composite_1, SWT.RIGHT);
+		lblGeneratedPassword.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblGeneratedPassword.setText("Generated Password:");
+		lblGeneratedPassword.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
 		
-		Canvas canvas = new Canvas(grpPasswordDetails, SWT.BORDER);
+		btnShowPassword = new Button(composite_1, SWT.FLAT | SWT.TOGGLE);
+		btnShowPassword.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent arg0) {
+		        onShowPasswordClicked();
+		    }
+		});
+		GridData gd_btnShowPassword = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_btnShowPassword.widthHint = 20;
+		gd_btnShowPassword.heightHint = 17;
+		btnShowPassword.setLayoutData(gd_btnShowPassword);
+		btnShowPassword.setToolTipText("Toggles the visibility of the generated password.");
+		btnShowPassword.setImage(null);
+		
+		canvasOutput = new Canvas(grpPasswordDetails, SWT.BORDER);
+		canvasOutput.addPaintListener(new PaintListener() {
+		    public void paintControl(PaintEvent arg0) {
+                if(passwordImage!=null) {
+                    arg0.gc.drawImage(passwordImage, 0, 0);
+                }
+		    }
+		});
+		canvasOutput.addControlListener(new ControlAdapter() {
+		    @Override
+		    public void controlResized(ControlEvent arg0) {
+                if(passwordImage!=null)
+                    passwordImage.dispose();
+                passwordImage = new Image(Display.getCurrent(), canvasOutput.getClientArea());
+                updatePasswordStrengthMeter();
+		    }
+		});
 		GridData gd_canvas = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_canvas.heightHint = 33;
-		canvas.setLayoutData(gd_canvas);
+		canvasOutput.setLayoutData(gd_canvas);
 
 	}
 	
+    SecureCharArray generateOutput() {
+        SecureCharArray output = null;
+        
+        try {
+            if(account!=null) {
+                output = pwm.makePassword(mpw, account);
+            }
+            else {
+                output = new SecureCharArray();
+            }
+        }
+        catch(Exception e) {}
+        finally {
+        }
+        
+        return output;
+    }
+    
 	void onAddPatternSelected() {
         PatternDlg dlg = new PatternDlg(shlAccountSettings, SWT.SHEET, new AccountPatternData());
         AccountPatternData newData = dlg.open();
@@ -610,6 +781,16 @@ public class AccountDlg {
 	    }
 	}
 	
+	void onDisposing() {
+	    // Don't erase as it belongs to the calling object
+	    mpw = null;
+	    
+	    if(passwordImage!=null) {
+	        passwordImage.dispose();
+	        passwordImage = null;
+	    }
+	}
+	
 	void onEditPatternSelected() {
 	    if(selectedPattern==null)
 	        return;
@@ -630,6 +811,16 @@ public class AccountDlg {
 	        shlAccountSettings.dispose();
 	    }
 	}
+	
+    private void onShowPasswordClicked() {
+        showPassword = btnShowPassword.getSelection();
+        if(showPassword)
+            btnShowPassword.setImage(eyeImage);
+        else
+            btnShowPassword.setImage(eyeClosedImage);
+        
+        updatePasswordStrengthMeter();
+    }
 	
 	private boolean populateAccountFromGui() {
         // General page
@@ -766,4 +957,57 @@ public class AccountDlg {
             btnCopyPattern.setEnabled(false);
         }
 	}
+    
+    void updatePasswordStrengthMeter() {
+        SecureCharArray output = null;
+        GC gc = null;
+
+        try {
+            gc = new GC(passwordImage);
+            gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+            gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+            gc.fillRectangle(canvasOutput.getClientArea());
+            gc.setFont(pwFont);
+            
+            if(mpw.size()==0) {
+                gc.drawText(INVALID_MPW_STRING, 5, 5);
+            }
+            else if(populateAccountFromGui()) {
+                output = generateOutput();
+                if(output!=null) {
+                    lastPasswordStrength = (int)PasswordMaker.calcPasswordStrength(output);
+
+                    if(showPassword==true) {
+                        int x = 0;
+                        int xPos = 5;
+                        for(x=0; x<output.getData().length; x++) {
+                            char strBytes [] = { output.getData()[x] };
+                            String str = new String(strBytes);
+                            gc.drawText(str, xPos, 5);
+                            xPos += gc.stringExtent(str).x + 2;
+                        }
+                    }
+                }
+                else {
+                    gc.drawText(INVALID_ACCOUNT_STRING, 5, 5);
+                }
+            }
+            else {
+                gc.drawText(INVALID_ACCOUNT_STRING, 5, 5);
+            }
+            
+            canvasOutput.redraw();
+        }
+        catch(Exception e) {}
+        finally {
+            if(output!=null)
+                output.erase();
+            if(gc!=null)
+                gc.dispose();
+        }
+
+        // This can be invoked prioer to the password strength meter getting created
+        if(passwordStrengthMeter!=null)
+            passwordStrengthMeter.setSelection(lastPasswordStrength);
+    }
 }
