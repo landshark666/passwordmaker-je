@@ -59,6 +59,7 @@ ShowUninstDetails show
 
 # Installer sections
 Section -Main SEC0000
+    SetShellVarContext all
     SetOutPath $INSTDIR
     SetOverwrite on
     File dist\pwmje-win32-win32_x86_64.jar
@@ -66,11 +67,13 @@ Section -Main SEC0000
 SectionEnd
 
 Section -post SEC0001
+    SetShellVarContext all
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     SetOutPath $INSTDIR
     WriteUninstaller $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     SetOutPath $SMPROGRAMS\$StartMenuGroup
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" $INSTDIR\pwmje-win32-win32_x86_64.jar
     CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk" $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_END
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
@@ -98,12 +101,15 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
+    SetShellVarContext all
     Delete /REBOOTOK $INSTDIR\pwmje-win32-win32_x86_64.jar
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
 
 Section -un.post UNSEC0001
+    SetShellVarContext all
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk"
     Delete /REBOOTOK $INSTDIR\uninstall.exe
     DeleteRegValue HKLM "${REGKEY}" StartMenuGroup

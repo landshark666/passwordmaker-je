@@ -29,7 +29,7 @@ Var StartMenuGroup
 
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE C:\Users\landshark\Desktop\gpl3.txt
+!insertmacro MUI_PAGE_LICENSE gpl3.txt
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
 !insertmacro MUI_PAGE_INSTFILES
@@ -59,6 +59,7 @@ ShowUninstDetails show
 
 # Installer sections
 Section -Main SEC0000
+    SetShellVarContext all
     SetOutPath $INSTDIR
     SetOverwrite on
     File dist\pwmje-win32-win32.jar
@@ -66,6 +67,7 @@ Section -Main SEC0000
 SectionEnd
 
 Section -post SEC0001
+    SetShellVarContext all
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     SetOutPath $INSTDIR
     WriteUninstaller $INSTDIR\uninstall.exe
@@ -99,12 +101,15 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
+    SetShellVarContext all
     Delete /REBOOTOK $INSTDIR\pwmje-win32-win32.jar
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
 
 Section -un.post UNSEC0001
+    SetShellVarContext all
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk"
     Delete /REBOOTOK $INSTDIR\uninstall.exe
     DeleteRegValue HKLM "${REGKEY}" StartMenuGroup
