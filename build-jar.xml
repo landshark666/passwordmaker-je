@@ -11,16 +11,23 @@
     <property name="os-arch" value="win32_x86_64" />
 	-->
     <target name="build_pwmje_jar">
-    	<echo message="*** Building pwmje-${os-platform}-${os-arch}.jar" />
+    	<property name="version-number" value="0.5.0" />
+    	<tstamp prefix="build-info">
+    		<format property="current-date" pattern="d-MMMM-yyyy" locale="en" />
+    		<format property="current-time" pattern="hh:mm:ss a z" locale="en" />
+    		<format property="year-month-day" pattern="yyyy-MM-dd" locale="en" />
+		</tstamp>
+    	<echo message="*** Building pwmje-${os-platform}-${os-arch}.jar version ${version-number}" />
         <jar destfile="dist/pwmje-${os-platform}-${os-arch}.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="org.daveware.passwordmaker.Main"/>
                 <attribute name="Class-Path" value="."/>
                 <attribute name="Rsrc-Class-Path" 
-                	value="./ bcprov-jdk16-146.jar java-getopt-1.0.13.jar swt-${os-platform}-${os-arch}.jar 
-                	org.eclipse.core.commands_3.6.0.I20110111-0800.jar org.eclipse.equinox.common_3.6.0.v20110523.jar org.eclipse.jface_3.7.0.I20110522-1430.jar
-                	org.eclipse.osgi_3.7.0.v20110613.jar org.eclipse.ui.workbench_3.7.0.I20110519-0100.jar"/>
+                	value="./ bcprov-jdk16-146.jar java-getopt-1.0.13.jar swt-${os-platform}-${os-arch}.jar org.eclipse.core.commands_3.6.0.I20110111-0800.jar org.eclipse.equinox.common_3.6.0.v20110523.jar org.eclipse.jface_3.7.0.I20110522-1430.jar org.eclipse.osgi_3.7.0.v20110613.jar org.eclipse.ui.workbench_3.7.0.I20110519-0100.jar" />
+            	<attribute name="Built-On" value="${build-info.current-date}" />
+            	<attribute name="Build-At" value="${build-info.current-time}" />
+            	<attribute name="Implementation-Version" value="${version-number}" />
             </manifest>
             <zipfileset src="lib/jar-in-jar-loader.zip"/>
             <fileset dir="bin"/>
