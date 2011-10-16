@@ -906,13 +906,13 @@ public class GuiMain implements DatabaseListener {
     
         try {
             db.addDefaultAccount();
-            db.setDirty(false);
             
             // TODO: This 2nd "setInput" is to work around a problem with the DatabaseListener not getting
             // messages - I'm not exactly sure why.
             accountTreeViewer.setInput(db);
             selectFirstAccount();
             setGuiFromGlobalSettings();
+            db.setDirty(false);
         } catch(Exception e) {
             // This REALLY should be impossible ... but, handle it anyway
             MBox.showError(shlPasswordMaker, "Unable to create default account.\n" + e.getMessage());
