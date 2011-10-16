@@ -20,7 +20,12 @@ package org.daveware.passwordmaker.gui;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +53,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.sun.jmx.snmp.Enumerated;
+
 public class AboutDlg extends Dialog {
 
 	protected Object result;
@@ -69,6 +76,7 @@ public class AboutDlg extends Dialog {
 	private StyledText generalText;
 	private StyledText textImages;
 	private StyledText licenseText;
+	private Label lblBuildDate;
 
 	/**
 	 * Create the dialog.
@@ -91,6 +99,7 @@ public class AboutDlg extends Dialog {
 		stylizeTextControl(textImages);
 		stylizeTextControl(licenseText);
 		tabFolder.setSelection(0);
+		loadBuildInfo();
 		
 		shlAboutPasswordmakerje.open();
 		shlAboutPasswordmakerje.layout();
@@ -103,6 +112,9 @@ public class AboutDlg extends Dialog {
 		return result;
 	}
 	
+	/**
+	 * Loads the image credits from a file in the jar.
+	 */
 	private void loadImageCredits() {
 		InputStream is = null;
 		InputStreamReader isr = null;
@@ -133,6 +145,12 @@ public class AboutDlg extends Dialog {
 		}
 	}
 	
+	/**
+	 * Rich-formats the text of a text control. All URLs are underlined with an HTTP style
+	 * and made clickable.
+	 * 
+	 * @param control The control to stylize the text of.
+	 */
 	private void stylizeTextControl(StyledText control) {
 		ArrayList<StyleRange> ranges = new ArrayList<StyleRange>();
 		Pattern p = Pattern.compile("https?://([-\\w\\.]+)+(:\\d+)?(/([\\w/_\\.]*(\\?\\S+)?)?)?");
@@ -180,8 +198,13 @@ public class AboutDlg extends Dialog {
 		control.setBackground(tabFolder.getBackground());
 	}
 	
+	/**
+	 * Extracts an URL out of a line of text.  Is it complete? Dunno, but it works for the PWMJE url.
+	 * @param text The text to analyze.
+	 * @return The URL if successful, else null.
+	 */
 	private String extractUrl(String text) {
-		Pattern p = Pattern.compile("https?://([-\\w\\.]+)+(:\\d+)?(/([\\w/_\\.]*(\\?\\S+)?)?)?");
+		Pattern p = Pattern.compile("https?://([-\\w\\.]+)+(:\\d+)?(/([\\w/_\\-\\.]*(\\?\\S+)?)?)?");
 		Matcher m = p.matcher(text);
 		
 		if(m.find()) {
@@ -189,6 +212,36 @@ public class AboutDlg extends Dialog {
 		}
 
 		return null;
+	}
+	
+	/**
+	 * Loads the build information from the manifest if it exists.  If run directly from eclipse, the
+	 * values are wrong due to it loading the manifest of the bouncy-castle jar.
+	 */
+	private void loadBuildInfo() {
+	    String version = "Version: Internal";
+	    String buildDate = "Unknown";
+	    String buildTime = "Unknown";
+	    try {
+	        URLClassLoader cl = (URLClassLoader)getClass().getClassLoader();
+	        URL url = cl.findResource("META-INF/MANIFEST.MF");
+	        if(url!=null) {
+	            Manifest manifest = new Manifest(url.openStream());
+	            Attributes attr = manifest.getMainAttributes();
+	            for(Object key : attr.keySet()) {
+	                if(key.toString().compareTo("Implementation-Version")==0)
+	                    version = "Version: " + attr.get(key).toString();
+	                else if(key.toString().compareTo("Built-On")==0)
+	                    buildDate = attr.get(key).toString();
+	                else if(key.toString().compareTo("Build-At")==0)
+	                    buildTime = attr.get(key).toString();
+	            }
+	        }
+	    } catch(Exception e) {
+	    }
+	    
+	    lblVersion.setText(version);
+	    lblBuildDate.setText("Build Date: " + buildDate + " " + buildTime);
 	}
 
 	/**
@@ -228,10 +281,6 @@ public class AboutDlg extends Dialog {
 		lblPasswordMakerJava.setBounds(0, 0, 55, 15);
 		lblPasswordMakerJava.setText("Password Maker Java Edition");
 		
-		lblVersion = new Label(composite_2, SWT.NONE);
-		lblVersion.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblVersion.setText("Version: ");
-		
 		lblCopyrightcDave = new Label(composite_2, SWT.NONE);
 		lblCopyrightcDave.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblCopyrightcDave.setText("Copyright (C) Dave Marotti, 2011. All rights reserved.");
@@ -244,7 +293,16 @@ public class AboutDlg extends Dialog {
 			}
 		});
 		link.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		link.setText("Visit: <a>http://pwmje.google.com</a>");
+		link.setText("Visit: <a>http://code.google.com/p/passwordmaker-je/</a>");
+		
+		lblVersion = new Label(composite_2, SWT.NONE);
+		lblVersion.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblVersion.setText("Version: ");
+		
+		lblBuildDate = new Label(composite_2, SWT.NONE);
+		lblBuildDate.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblBuildDate.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false, 1, 1));
+		lblBuildDate.setText("Build Date:");
 		
 		tabFolder = new CTabFolder(composite, SWT.BORDER);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
