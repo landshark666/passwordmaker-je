@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="build_pwmje_jar" name="Create Runnable Jar for Project PasswordMakerJE with Jar-in-Jar Loader">
+<project default="build-pwmje-jar" name="Create Runnable Jar for Project PasswordMakerJE with Jar-in-Jar Loader">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required      -->             
     <!-- OSX X86-64
@@ -10,8 +10,7 @@
     <property name="os-platform" value="win32" />
     <property name="os-arch" value="win32_x86_64" />
 	-->
-    <target name="build_pwmje_jar">
-    	<property name="version-number" value="0.5.0" />
+    <target name="build-pwmje-jar">
     	<tstamp prefix="build-info">
     		<format property="current-date" pattern="d-MMMM-yyyy" locale="en" />
     		<format property="current-time" pattern="hh:mm:ss a z" locale="en" />
