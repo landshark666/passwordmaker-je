@@ -5,7 +5,7 @@ Name "PasswordMaker Java Edition (32-bit)"
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 0.5.0
+#!define VERSION 0.5.0
 !define COMPANY "Dave Marotti"
 !define URL http://code.google.com/p/passwordmaker-je/
 
