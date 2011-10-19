@@ -511,6 +511,7 @@ public class AccountDlg {
 		comboUseLeet.addSelectionListener(new SelectionAdapter() {
 		    @Override
 		    public void widgetSelected(SelectionEvent arg0) {
+		        checkLeetLevel();
 		        updatePasswordStrengthMeter();
 		    }
 		});
@@ -854,7 +855,8 @@ public class AccountDlg {
             case 3: account.setLeetType(LeetType.BOTH); break;
             default: account.setLeetType(LeetType.NONE); break;
         }
-        account.setLeetLevel(LeetLevel.fromInt(comboLeetLevel.getSelectionIndex()));
+        // LeetLevel objects are from 1-9. Since the index is 0-based, add 1.
+        account.setLeetLevel(LeetLevel.fromInt(comboLeetLevel.getSelectionIndex() + 1));
         int selectedAlgo = comboHashAlgorithm.getSelectionIndex();
         account.setAlgorithm(AlgorithmType.getTypes()[selectedAlgo/2]);
         account.setHmac((selectedAlgo & 1)!=0);
@@ -1009,5 +1011,24 @@ public class AccountDlg {
         // This can be invoked prioer to the password strength meter getting created
         if(passwordStrengthMeter!=null)
             passwordStrengthMeter.setSelection(lastPasswordStrength);
+    }
+    
+    /**
+     * Warns the user if LeetType::BOTH or LeetType::AFTER are selected since this 
+     * severely limits the number of characters used to generate the password.
+     */
+    private void checkLeetLevel() {
+        int leetTypeIndex = comboUseLeet.getSelectionIndex();
+        comboLeetLevel.setEnabled(leetTypeIndex>0);
+        if(leetTypeIndex>0) {
+            if(leetTypeIndex==2 || leetTypeIndex==3) {
+                MBox.showWarning(shlAccountSettings, "Warning: this type of l33t may place special\n" +
+                        "characters in the generated password which are\n" +
+                        "not in the list of characters you've defined in\n" +
+                        "the characters field. It also limits the number of\n" +
+                        "characters available in the password\n\n" +
+                        "Its use is not recommended!");
+            }
+        }
     }
 }
