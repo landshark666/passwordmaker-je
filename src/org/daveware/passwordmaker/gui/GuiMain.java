@@ -1435,6 +1435,14 @@ public class GuiMain implements DatabaseListener {
         if(selected!=null && selected.length()>0) {
             String oldFilename = cmdLineSettings.inputFilename;
             cmdLineSettings.inputFilename = selected;
+            
+            File fileTest = new File(selected);
+            if(fileTest.exists()) {
+                if(MBox.showYesNo(shlPasswordMaker, "File " + selected + " already exists, would you like to replace it?")!=SWT.YES)
+                    return false;
+            }
+
+            
             if(saveFile()==true) {
                 textFilename.setText(cmdLineSettings.inputFilename);
                 return true;
