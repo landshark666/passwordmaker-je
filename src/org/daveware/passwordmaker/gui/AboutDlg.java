@@ -20,15 +20,7 @@ package org.daveware.passwordmaker.gui;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Properties;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,8 +48,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
-
-import com.sun.jmx.snmp.Enumerated;
 
 public class AboutDlg extends Dialog {
 
