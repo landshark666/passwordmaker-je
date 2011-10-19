@@ -17,6 +17,9 @@
     		<format property="year-month-day" pattern="yyyy-MM-dd" locale="en" />
 		</tstamp>
     	<echo message="*** Building pwmje-${os-platform}-${os-arch}.jar version ${version-number}" />
+        <echo file="dist/build-info.properties" append="false">Implementation-Version: ${version-number} 
+Built-On: ${build-info.current-date}
+Built-At: ${build-info.current-time}</echo>
         <jar destfile="dist/pwmje-${os-platform}-${os-arch}.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
@@ -28,6 +31,7 @@
             	<attribute name="Build-At" value="${build-info.current-time}" />
             	<attribute name="Implementation-Version" value="${version-number}" />
             </manifest>
+        	<fileset file="dist/build-info.properties" />
             <zipfileset src="lib/jar-in-jar-loader.zip"/>
             <fileset dir="bin"/>
             <zipfileset dir="lib" includes="bcprov-jdk16-146.jar"/>
