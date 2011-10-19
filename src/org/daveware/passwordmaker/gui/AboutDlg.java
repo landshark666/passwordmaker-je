@@ -24,11 +24,15 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.Properties;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.daveware.passwordmaker.BuildInfo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -215,33 +219,18 @@ public class AboutDlg extends Dialog {
 	}
 	
 	/**
-	 * Loads the build information from the manifest if it exists.  If run directly from eclipse, the
-	 * values are wrong due to it loading the manifest of the bouncy-castle jar.
+	 * Loading the manifest is proving to be impossible since it seems to insist upon loading
+	 * the manifest from every jar file inside the main jar, EXCEPT for mine.  I gave up and
+	 * ended up creating a build-info.properties file manually during build-dist bundling. That
+	 * information is loaded here.
 	 */
 	private void loadBuildInfo() {
-	    String version = "Version: Internal";
-	    String buildDate = "Unknown";
-	    String buildTime = "Unknown";
-	    try {
-	        URLClassLoader cl = (URLClassLoader)getClass().getClassLoader();
-	        URL url = cl.findResource("META-INF/MANIFEST.MF");
-	        if(url!=null) {
-	            Manifest manifest = new Manifest(url.openStream());
-	            Attributes attr = manifest.getMainAttributes();
-	            for(Object key : attr.keySet()) {
-	                if(key.toString().compareTo("Implementation-Version")==0)
-	                    version = "Version: " + attr.get(key).toString();
-	                else if(key.toString().compareTo("Built-On")==0)
-	                    buildDate = attr.get(key).toString();
-	                else if(key.toString().compareTo("Build-At")==0)
-	                    buildTime = attr.get(key).toString();
-	            }
-	        }
-	    } catch(Exception e) {
-	    }
+	    BuildInfo buildInfo = new BuildInfo();
+        String version = "Version: " + buildInfo.getVersion();
+        String build = "Build Date: " + buildInfo.getBuildDate() + " " + buildInfo.getBuildTime();
 	    
 	    lblVersion.setText(version);
-	    lblBuildDate.setText("Build Date: " + buildDate + " " + buildTime);
+	    lblBuildDate.setText(build);
 	}
 
 	/**
