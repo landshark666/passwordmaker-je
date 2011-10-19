@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 import org.daveware.passwordmaker.Account;
+import org.daveware.passwordmaker.BuildInfo;
 import org.daveware.passwordmaker.CmdLineSettings;
 import org.daveware.passwordmaker.Database;
 import org.daveware.passwordmaker.DatabaseListener;
@@ -166,6 +167,7 @@ public class GuiMain implements DatabaseListener {
     private Account selectedAccount = null;
     private PasswordMaker pwm = null;
     private Database db = null;
+    private BuildInfo buildInfo = null;
     
     private boolean isFiltering = false;
     private boolean showPassword = true;
@@ -175,6 +177,7 @@ public class GuiMain implements DatabaseListener {
     
     public GuiMain(CmdLineSettings c) {
         cmdLineSettings = c;
+        buildInfo = new BuildInfo();
     }
     
     /**
@@ -301,7 +304,7 @@ public class GuiMain implements DatabaseListener {
 
         shlPasswordMaker.setMinimumSize(new Point(795, 345));
         shlPasswordMaker.setSize(795, 345);
-        shlPasswordMaker.setText(TITLE_STRING);
+        shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
         shlPasswordMaker.setLayout(new FormLayout());
         
         Sash sash = new Sash(shlPasswordMaker, SWT.VERTICAL);
@@ -1515,8 +1518,8 @@ public class GuiMain implements DatabaseListener {
     @Override
     public void dirtyStatusChanged(boolean status) {
         if(status)
-            shlPasswordMaker.setText("* " + TITLE_STRING);
+            shlPasswordMaker.setText("* " + TITLE_STRING + " - " + buildInfo.getVersion());
         else
-            shlPasswordMaker.setText(TITLE_STRING);
+            shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
     }
 }
