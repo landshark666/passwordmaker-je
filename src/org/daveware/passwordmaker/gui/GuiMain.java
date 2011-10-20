@@ -156,16 +156,13 @@ public class GuiMain implements DatabaseListener {
     
     private Font passwordFont = null;
     
-    // This one does need to be disposed of
     private Font regularSearchFont = null;
+    private Font italicsSearchFont = null;
 
     private AccountTreeModel accountTreeModel = new AccountTreeModel();
     private AccountTreeLabelProvider accountTreeLabelProvider = new AccountTreeLabelProvider();
     //-------- End RESOURCES THAT MUST BE DISPOSED OF -----------------------------------
 
-    // Do NOT dispose of this font, this is the original obtained from the widget
-    private Font italicsSearchFont = null;
-    
     
     private CmdLineSettings cmdLineSettings;
     private String currentFilename = "";
@@ -234,15 +231,23 @@ public class GuiMain implements DatabaseListener {
     }
     
     protected void setupFonts() {
-        // Clone the font of the accountFilterText widget
-        italicsSearchFont = accountFilterText.getFont();
-        FontData [] fd = italicsSearchFont.getFontData();
-        for(FontData d : fd) {
-        	d.setStyle(d.getStyle() & ~SWT.ITALIC);
-        }
-        regularSearchFont = new Font(display, fd);
+        // Clone the font of the accountFilterText widget 
+        Font stockFont = accountFilterText.getFont();
+        FontData [] fdItalics = display.getSystemFont().getFontData();
+
         
-        passwordFont = new Font(Display.getCurrent(), "Segoe UI", 12, SWT.BOLD);
+        // Default OSX font doesn't support italics (on my system)
+        if(Utilities.isMac()) {
+        	italicsSearchFont = new Font(display, fdItalics[0].getName(), fdItalics[0].getHeight(), 0);
+        }
+        else {
+        	italicsSearchFont = new Font(display, fdItalics[0].getName(), fdItalics[0].getHeight(), SWT.ITALIC);
+        }
+
+        regularSearchFont = new Font(display, stockFont.getFontData());
+        accountFilterText.setFont(italicsSearchFont);
+        
+        passwordFont = new Font(Display.getCurrent(), fdItalics[0].getName(), 14, SWT.BOLD);
     }
     
     protected void setupTree() {
@@ -349,7 +354,6 @@ public class GuiMain implements DatabaseListener {
         filterIcon.setText("");
         
         accountFilterText = new Text(composite, SWT.BORDER);
-        accountFilterText.setFont(SWTResourceManager.getFont("Lucida Grande", 11, SWT.ITALIC));
         accountFilterText.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent arg0) {
         		onFilterModified(arg0);
@@ -1132,6 +1136,8 @@ public class GuiMain implements DatabaseListener {
         	passwordFont.dispose();
         if(regularSearchFont!=null)
         	regularSearchFont.dispose();
+        if(italicsSearchFont!=null)
+        	italicsSearchFont.dispose();
         if(accountTreeModel!=null)
         	accountTreeModel.dispose();
         if(accountTreeLabelProvider!=null)
@@ -1476,10 +1482,12 @@ public class GuiMain implements DatabaseListener {
     	           gc.setFont(passwordFont);
     	           int x = 0;
     	           int xPos = 5;
+
+    	           // TODO: really should calculate the text extents and center off of it
     	           for(x=0; x<output.getData().length; x++) {
     	               char strBytes [] = { output.getData()[x] };
     	               String str = new String(strBytes);
-    	               gc.drawText(str, xPos, 5);
+    	               gc.drawText(str, xPos, 7);
     	               xPos += gc.stringExtent(str).x + 2;
     	           }
                }
