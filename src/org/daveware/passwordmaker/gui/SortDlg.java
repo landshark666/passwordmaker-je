@@ -69,8 +69,10 @@ public class SortDlg extends Dialog {
         comboStyle.select(sortOptions.ascending ? 0 : 1);
         comboGroupLocation.select(sortOptions.groupsAtTop ? 0 : 1);
         
+        shlSortOptions.pack();
         shlSortOptions.open();
         shlSortOptions.layout();
+
         Display display = getParent().getDisplay();
         while (!shlSortOptions.isDisposed()) {
             if (!display.readAndDispatch()) {
@@ -86,7 +88,7 @@ public class SortDlg extends Dialog {
      */
     private void createContents() {
         shlSortOptions = new Shell(getParent(), getStyle());
-        shlSortOptions.setSize(317, 148);
+        shlSortOptions.setSize(317, 149);
         shlSortOptions.setText("Sort Options");
         
         btnCancel = new Button(shlSortOptions, SWT.NONE);
@@ -98,7 +100,7 @@ public class SortDlg extends Dialog {
         });
         btnCancel.setText("Cancel");
         btnCancel.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
-        btnCancel.setBounds(115, 87, 90, 26);
+        btnCancel.setBounds(115, 87, 90, 32);
         
         btnOk = new Button(shlSortOptions, SWT.NONE);
         btnOk.addSelectionListener(new SelectionAdapter() {
@@ -109,7 +111,7 @@ public class SortDlg extends Dialog {
         });
         btnOk.setText("OK");
         btnOk.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
-        btnOk.setBounds(211, 87, 90, 26);
+        btnOk.setBounds(211, 87, 90, 32);
         
         lblSortStyle = new Label(shlSortOptions, SWT.NONE);
         lblSortStyle.setAlignment(SWT.RIGHT);
