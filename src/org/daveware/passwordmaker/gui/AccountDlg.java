@@ -24,6 +24,7 @@ import org.daveware.passwordmaker.LeetLevel;
 import org.daveware.passwordmaker.LeetType;
 import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.SecureCharArray;
+import org.daveware.passwordmaker.Utilities;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -678,7 +679,6 @@ public class AccountDlg {
 		lblGeneratedPassword = new Label(composite_1, SWT.RIGHT);
 		lblGeneratedPassword.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblGeneratedPassword.setText("Generated Password:");
-		lblGeneratedPassword.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
 		
 		btnShowPassword = new Button(composite_1, SWT.FLAT | SWT.TOGGLE);
 		btnShowPassword.addSelectionListener(new SelectionAdapter() {
@@ -982,10 +982,14 @@ public class AccountDlg {
                     if(showPassword==true) {
                         int x = 0;
                         int xPos = 5;
+                        int yPos = 2;
+                        
+                        if(Utilities.isMac())
+                        	yPos = 7;
                         for(x=0; x<output.getData().length; x++) {
                             char strBytes [] = { output.getData()[x] };
                             String str = new String(strBytes);
-                            gc.drawText(str, xPos, 5);
+                            gc.drawText(str, xPos, yPos);
                             xPos += gc.stringExtent(str).x + 2;
                         }
                     }
