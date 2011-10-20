@@ -1355,7 +1355,11 @@ public class GuiMain implements DatabaseListener {
             }
         }
         
-        SortDlg dlg = new SortDlg(shlPasswordMaker, SWT.SHEET, sortOptions);
+        int style = SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL;
+        if(Utilities.isMac())
+        	style = SWT.SHEET;
+        
+        SortDlg dlg = new SortDlg(shlPasswordMaker, style, sortOptions);
         SortOptions newOptions = null;
         newOptions = dlg.open();
         if(newOptions!=null) {
