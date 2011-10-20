@@ -20,8 +20,10 @@ package org.daveware.passwordmaker.gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Collections;
 
 import org.daveware.passwordmaker.Account;
+import org.daveware.passwordmaker.AccountComparator;
 import org.daveware.passwordmaker.BuildInfo;
 import org.daveware.passwordmaker.CmdLineSettings;
 import org.daveware.passwordmaker.Database;
@@ -31,6 +33,7 @@ import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.RDFDatabaseReader;
 import org.daveware.passwordmaker.RDFDatabaseWriter;
 import org.daveware.passwordmaker.SecureCharArray;
+import org.daveware.passwordmaker.SortOptions;
 import org.daveware.passwordmaker.Utilities;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
@@ -123,6 +126,7 @@ public class GuiMain implements DatabaseListener {
     private MenuItem menuItemNewAccount;
     private MenuItem menuItemEditAccount;
     private MenuItem menuItemDeleteAccount;
+    private MenuItem menuItemSort;
     private Text accountFilterText;
     private Button btnShowPassword;
     private Menu menu_1;
@@ -164,15 +168,18 @@ public class GuiMain implements DatabaseListener {
     
     
     private CmdLineSettings cmdLineSettings;
+    private String currentFilename = "";
     private Account selectedAccount = null;
     private PasswordMaker pwm = null;
     private Database db = null;
     private BuildInfo buildInfo = null;
+    private SortOptions sortOptions = new SortOptions();
     
     private boolean isFiltering = false;
     private boolean showPassword = true;
 
     private boolean closeAfterTimer = false;
+    private MenuItem menuItem;
 
     
     public GuiMain(CmdLineSettings c) {
@@ -304,7 +311,8 @@ public class GuiMain implements DatabaseListener {
 
         shlPasswordMaker.setMinimumSize(new Point(795, 345));
         shlPasswordMaker.setSize(795, 345);
-        shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
+        setTitle();
+//        shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
         shlPasswordMaker.setLayout(new FormLayout());
         
         Sash sash = new Sash(shlPasswordMaker, SWT.VERTICAL);
@@ -584,10 +592,6 @@ public class GuiMain implements DatabaseListener {
         menuItemNewAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/key_add.png"));
         menuItemNewAccount.setText("&New Account");
         
-        menuItemNewGroup = new MenuItem(menu, SWT.NONE);
-        menuItemNewGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/folder_add.png"));
-        menuItemNewGroup.setText("New Group");
-        
         menuItemEditAccount = new MenuItem(menu, SWT.NONE);
         menuItemEditAccount.addSelectionListener(new SelectionAdapter() {
         	@Override
@@ -597,6 +601,18 @@ public class GuiMain implements DatabaseListener {
         });
         menuItemEditAccount.setText("&Edit Account");
         
+        new MenuItem(menu, SWT.SEPARATOR);
+        
+        menuItemNewGroup = new MenuItem(menu, SWT.NONE);
+        menuItemNewGroup.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                onNewGroupSelected();
+            }
+        });
+        menuItemNewGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/folder_add.png"));
+        menuItemNewGroup.setText("New Group");
+        
         menuItemEditGroup = new MenuItem(menu, SWT.NONE);
         menuItemEditGroup.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -605,6 +621,18 @@ public class GuiMain implements DatabaseListener {
             }
         });
         menuItemEditGroup.setText("Edit Group");
+        
+        menuItem = new MenuItem(menu, SWT.SEPARATOR);
+        
+        menuItemSort = new MenuItem(menu, SWT.NONE);
+        menuItemSort.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/sort_ascend.png"));
+        menuItemSort.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                onSort();
+            }
+        });
+        menuItemSort.setText("Sort");
         
         new MenuItem(menu, SWT.SEPARATOR);
         
@@ -881,6 +909,19 @@ public class GuiMain implements DatabaseListener {
     }
 
     /**
+     * Sets the title of the window based on the current data state.
+     */
+    private void setTitle() {
+        String title = (currentFilename.trim().length()==0 ? "Untitled" : currentFilename) + " - " + 
+                        TITLE_STRING + " - " + buildInfo.getVersion();
+        String dirty = " ";
+        if(db!=null && db.isDirty())
+            dirty = "* ";
+        shlPasswordMaker.setText(dirty + title);
+    }
+
+
+    /**
      * Creates a new blank(sorta) database. This will attempt to save first if the current
      * database is dirty and abort the new file operation if the save fails.
      * @return
@@ -958,6 +999,9 @@ public class GuiMain implements DatabaseListener {
     	filterIcon.setVisible(true);
     }
 
+    /**
+     * Invoked when the account menu is about to be shown.
+     */
     private void onAccountMenuShown() {
         if(selectedAccount!=null) {
             if(selectedAccount.isFolder()) {
@@ -965,13 +1009,14 @@ public class GuiMain implements DatabaseListener {
                 menuItemDeleteGroup.setEnabled(true);
                 menuItemEditAccount.setEnabled(false);
                 menuItemDeleteAccount.setEnabled(false);
-                
+                menuItemSort.setEnabled(true);
             }
             else {
                 menuItemEditGroup.setEnabled(false);
                 menuItemDeleteGroup.setEnabled(false);
                 menuItemEditAccount.setEnabled(true);
                 menuItemDeleteAccount.setEnabled(selectedAccount.isDefault()==false && selectedAccount.isRoot()==false);
+                menuItemSort.setEnabled(true);
             }
         }
         else {
@@ -979,6 +1024,7 @@ public class GuiMain implements DatabaseListener {
             menuItemDeleteGroup.setEnabled(false);
             menuItemEditAccount.setEnabled(false);
             menuItemDeleteAccount.setEnabled(false);
+            menuItemSort.setEnabled(false);
         }
     }
 
@@ -1237,11 +1283,57 @@ public class GuiMain implements DatabaseListener {
                 newAccount.setId(Account.createId(newAccount));
                 db.addAccount(parentAccount, newAccount);
             } catch(Exception e) {
-                MBox.showError(shlPasswordMaker, "While creating the new account, an error occurred. You should save your work and restart.\n" + e.getMessage());
+                MBox.showError(shlPasswordMaker, "While creating the new account, an error occurred. You should save your work to a new file and restart.\n" + e.getMessage());
             }
         }
     }
     
+    private void onNewGroupSelected() {
+        Account parentAccount = null;
+        AccountDlg dlg = null;
+        
+        // If no account is selected, then default to the root
+        if(selectedAccount==null)
+            parentAccount = db.getRootAccount();
+        else {
+            // Otherwise decide if it will be a sibling of the selected account or a child
+            // of the selected group.
+            parentAccount = selectedAccount;
+            
+            // If the parent is not a folder, it needs to be created as a sibling. So locate
+            // who the real parent is.
+            if(parentAccount.isFolder()==false) {
+                parentAccount = db.findParent(parentAccount);
+                if(parentAccount==null) {
+                    MBox.showError(shlPasswordMaker, "Unable to locate parent account of '" + selectedAccount.getName() + "' id=" + selectedAccount.getId() +", cannot add new group.");
+                    return;
+                }
+            }
+        }
+
+        // Create a new blank account with default settings and the dialog
+        Account newAccount = new Account();
+        newAccount.setIsFolder(true);
+        SecureCharArray mpw = new SecureCharArray(editMP.getText());
+        try {
+            dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
+        } finally {
+            mpw.erase();
+            mpw = null;
+        }
+            
+        // A copy of the account is returned if "ok" is clicked.
+        newAccount = dlg.open();
+        if(newAccount!=null) {
+            try {
+                newAccount.setId(Account.createId(newAccount));
+                db.addAccount(parentAccount, newAccount);
+            } catch(Exception e) {
+                MBox.showError(shlPasswordMaker, "While creating the new group, an error occurred. You should save your work to a new file and restart.\n" + e.getMessage());
+            }
+        }
+    }
+
     private void onSecondsFocusLost() {
         int numSeconds;
         
@@ -1257,6 +1349,39 @@ public class GuiMain implements DatabaseListener {
             secondsDecoration.hide();
         } catch(Exception e) {
             secondsDecoration.show();
+        }
+    }
+    
+    private void onSort() {
+        // shouldn't be possible
+        if(selectedAccount==null) {
+            MBox.showError(shlPasswordMaker, "An account must be selected before sorting can occur (how did you do this?).");
+            return;
+        }
+        
+        // Locate the parent if it is just an account
+        Account parentAccount = selectedAccount;
+        if(selectedAccount.isFolder()==false) {
+            parentAccount = db.findParent(selectedAccount);
+            if(parentAccount==null) {
+                MBox.showError(shlPasswordMaker, "Unable to locate parent account for " + selectedAccount.getName() + " (how did you do this?).");
+                return;
+            }
+        }
+        
+        SortDlg dlg = new SortDlg(shlPasswordMaker, SWT.SHEET, sortOptions);
+        SortOptions newOptions = null;
+        newOptions = dlg.open();
+        if(newOptions!=null) {
+            sortOptions = newOptions;
+            Collections.sort(parentAccount.getChildren(), new AccountComparator(sortOptions));
+        
+            if(parentAccount.isRoot())
+                accountTreeViewer.refresh(null, true);
+            else
+                accountTreeViewer.refresh(parentAccount, true);
+
+            db.setDirty(true);
         }
     }
     
@@ -1317,6 +1442,7 @@ public class GuiMain implements DatabaseListener {
             fin = new FileInputStream(inputFile);
             db = rdfReader.read(fin);
             db.addDatabaseListener(this);
+            currentFilename = filename;
             
             // Widget setup
             accountTreeViewer.setInput(db);
@@ -1328,7 +1454,7 @@ public class GuiMain implements DatabaseListener {
             db.setDirty(false);
             ret = true;
         } catch(Exception ex) {
-            cmdLineSettings.inputFilename = "";
+            currentFilename = "";
             db = new Database();
             db.addDatabaseListener(this);
             accountTreeViewer.setInput(db);
@@ -1400,13 +1526,13 @@ public class GuiMain implements DatabaseListener {
         
         // If we don't have a filename yet, call saveAs() which will call this function
         // in return with a filename set.
-        if(cmdLineSettings.inputFilename==null || cmdLineSettings.inputFilename.length()==0) {
+        if(currentFilename.trim().length()==0) {
             return saveFileAs();
         }
         
         try {
             RDFDatabaseWriter out = new RDFDatabaseWriter();
-            File newFile = new File(cmdLineSettings.inputFilename);
+            File newFile = new File(currentFilename);
             if(newFile.exists()==false)
                 newFile.createNewFile();
             
@@ -1416,7 +1542,7 @@ public class GuiMain implements DatabaseListener {
             ret = true;
         }
         catch(Exception e) {
-            MBox.showError(shlPasswordMaker, "Unable to save to " + cmdLineSettings.inputFilename + ".\n" + e.getMessage());
+            MBox.showError(shlPasswordMaker, "Unable to save to " + currentFilename + ".\n" + e.getMessage());
         }
         
         return ret;
@@ -1424,7 +1550,7 @@ public class GuiMain implements DatabaseListener {
 
     /**
      * Opens up a dialog-box allowing the user to select a file to save to. This will invoke
-     * saveFile behind the scenes and update config.inputFilename/textFilename on success.
+     * saveFile behind the scenes and update currentFilename/textFilename on success.
      * @return true on success.
      */
     private boolean saveFileAs() {
@@ -1433,8 +1559,8 @@ public class GuiMain implements DatabaseListener {
         fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
         String selected = fd.open();
         if(selected!=null && selected.length()>0) {
-            String oldFilename = cmdLineSettings.inputFilename;
-            cmdLineSettings.inputFilename = selected;
+            String oldFilename = currentFilename;
+            currentFilename = selected;
             
             File fileTest = new File(selected);
             if(fileTest.exists()) {
@@ -1444,13 +1570,13 @@ public class GuiMain implements DatabaseListener {
 
             
             if(saveFile()==true) {
-                textFilename.setText(cmdLineSettings.inputFilename);
+                textFilename.setText(currentFilename);
                 return true;
             }
             
             // it failed if we get here, restore the filename
-            cmdLineSettings.inputFilename = oldFilename;
-            textFilename.setText(cmdLineSettings.inputFilename);
+            currentFilename = oldFilename;
+            textFilename.setText(currentFilename);
         }
         
         
@@ -1525,9 +1651,6 @@ public class GuiMain implements DatabaseListener {
 
     @Override
     public void dirtyStatusChanged(boolean status) {
-        if(status)
-            shlPasswordMaker.setText("* " + TITLE_STRING + " - " + buildInfo.getVersion());
-        else
-            shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
+        setTitle();
     }
 }
