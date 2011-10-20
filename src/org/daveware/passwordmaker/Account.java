@@ -59,6 +59,11 @@ public final class Account implements Comparable<Account> {
         
     }
     
+    public Account(String name, boolean isFolder) {
+        this.isAFolder = isFolder;
+        this.name = name;
+    }
+    
     public Account(String name, String url, String username) {
         this.name = name;
         this.url = url;
@@ -502,15 +507,25 @@ public final class Account implements Comparable<Account> {
     }
 
     /**
-     * Implements the Comparable<Account> interface, this is based ONLY on the name
-     * and is used for sorting.  Do not use this for true equality, instead compare
-     * with the id member.
+     * Implements the Comparable<Account> interface, this is based first on if the
+     * account is a folder or not. This is so that during sorting, all folders are
+     * first in the list.  Finally, it is based on the name.
      * 
      * @param o The other account to compare to.
      * @return this.name.compareTo(otherAccount.name);
      */
     public int compareTo(Account o) {
-        return this.name.compareTo(o.name);
+        if(this.isFolder() && !o.isFolder())
+            return -1;
+        else if(!this.isFolder() && o.isFolder())
+            return 1;
+        
+        // First ignore case, if they equate, use case.
+        int result = name.compareToIgnoreCase(o.name);
+        if(result==0)
+            return name.compareTo(o.name);
+        else
+            return result;
     }
     
     /**
