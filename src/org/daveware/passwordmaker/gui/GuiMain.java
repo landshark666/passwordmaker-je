@@ -1482,12 +1482,16 @@ public class GuiMain implements DatabaseListener {
     	           gc.setFont(passwordFont);
     	           int x = 0;
     	           int xPos = 5;
+    	           int yPos = 2;
+    	           
+    	           if(Utilities.isMac())
+    	               yPos = 7;
 
     	           // TODO: really should calculate the text extents and center off of it
     	           for(x=0; x<output.getData().length; x++) {
     	               char strBytes [] = { output.getData()[x] };
     	               String str = new String(strBytes);
-    	               gc.drawText(str, xPos, 7);
+    	               gc.drawText(str, xPos, yPos);
     	               xPos += gc.stringExtent(str).x + 2;
     	           }
                }
