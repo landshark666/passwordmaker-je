@@ -72,7 +72,7 @@ public class AccountTreeLabelProvider implements ILabelProvider {
 	public Image getImage(Object o) {
 		if(o instanceof Account) {
 			Account account = (Account)o;
-			if(account.getChildren().size()>0)
+			if(account.isFolder())
 				return iconFolder;
 			if(account.getPatterns()!=null && account.getPatterns().size()>0)
 				return iconKeyNext;
