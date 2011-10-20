@@ -66,4 +66,16 @@ public class Utilities {
             }, null);
           } catch (IllegalStateException e) {}    
     }
+    
+    public static boolean isMac() {
+    	return System.getProperty("os.name").toLowerCase().indexOf("mac")>=0;
+    }
+    
+    public static boolean isUnix() {
+    	return System.getProperty("os.name").toLowerCase().indexOf("nix")>=0;
+    }
+
+    public static boolean isWindows() {
+    	return System.getProperty("os.name").toLowerCase().indexOf("win")>=0;
+    }
 }
