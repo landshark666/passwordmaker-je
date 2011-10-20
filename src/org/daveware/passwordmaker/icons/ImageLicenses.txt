@@ -41,6 +41,11 @@ Author: ?
 URL: http://passwordmaker.org
 License: Permission from Eric Yung (eric.jung@yahoo.com)
 
+sort_ascend.png
+Author: Momenticons
+URL: http://www.iconfinder.com/icondetails/44382/16/ascend_sort_icon
+License: Creative Commons (Attribution 3.0 Unported)
+
 world_link.png
 Author: Mark James
 URL: http://www.iconfinder.com/icondetails/5929/16/link_world_icon
