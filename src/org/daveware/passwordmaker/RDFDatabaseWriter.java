@@ -121,32 +121,35 @@ public class RDFDatabaseWriter implements DatabaseWriter {
 		writer.writeAttribute("RDF:about", account.getId());
 		writer.writeAttribute("NS1:name", account.getName());
 		writer.writeAttribute("NS1:description", account.getDesc());
-		writer.writeAttribute("NS1:whereLeetLB", account.getLeetType().toRdfString());
-		writer.writeAttribute("NS1:leetLevelLB", Integer.toString(account.getLeetLevel().getLevel()));
 		
-		if(account.isHmac())
-		    writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toHmacRdfString());
-		else
-		    writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toRdfString());
-		
-		writer.writeAttribute("NS1:passwordLength", Integer.toString(account.getLength()));
-		writer.writeAttribute("NS1:usernameTB", account.getUsername());
-		writer.writeAttribute("NS1:counter", account.getModifier());
-		writer.writeAttribute("NS1:charset", account.getCharacterSet());
-		writer.writeAttribute("NS1:prefix", account.getPrefix());
-		writer.writeAttribute("NS1:suffix", account.getSuffix());
-		writer.writeAttribute("NS1:autoPopulate", "false"); // TODO: make this a setting allowed in accounts
-		writer.writeAttribute("NS1:urlToUse", account.getUrl());
-		int patternCount = 0;
-		for(AccountPatternData data : account.getPatterns()) {
-			writer.writeAttribute("NS1:pattern" + patternCount, data.getPattern());
-			if(data.getType()==AccountPatternType.WILDCARD)
-				writer.writeAttribute("NS1:patterntype" + patternCount, "wildcard");
-			else
-				writer.writeAttribute("NS1:patterntype" + patternCount, "regex");
-			writer.writeAttribute("NS1:patternenabled" + patternCount, "true");  // TODO: make this a setting allowed in pattern data
-			writer.writeAttribute("NS1:patterndesc" + patternCount, data.getDesc());
-			patternCount++;
+		if(account.isFolder()==false) {
+    		writer.writeAttribute("NS1:whereLeetLB", account.getLeetType().toRdfString());
+    		writer.writeAttribute("NS1:leetLevelLB", Integer.toString(account.getLeetLevel().getLevel()));
+    		
+    		if(account.isHmac())
+    		    writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toHmacRdfString());
+    		else
+    		    writer.writeAttribute("NS1:hashAlgorithmLB", account.getAlgorithm().toRdfString());
+    		
+    		writer.writeAttribute("NS1:passwordLength", Integer.toString(account.getLength()));
+    		writer.writeAttribute("NS1:usernameTB", account.getUsername());
+    		writer.writeAttribute("NS1:counter", account.getModifier());
+    		writer.writeAttribute("NS1:charset", account.getCharacterSet());
+    		writer.writeAttribute("NS1:prefix", account.getPrefix());
+    		writer.writeAttribute("NS1:suffix", account.getSuffix());
+    		writer.writeAttribute("NS1:autoPopulate", "false"); // TODO: make this a setting allowed in accounts
+    		writer.writeAttribute("NS1:urlToUse", account.getUrl());
+    		int patternCount = 0;
+    		for(AccountPatternData data : account.getPatterns()) {
+    			writer.writeAttribute("NS1:pattern" + patternCount, data.getPattern());
+    			if(data.getType()==AccountPatternType.WILDCARD)
+    				writer.writeAttribute("NS1:patterntype" + patternCount, "wildcard");
+    			else
+    				writer.writeAttribute("NS1:patterntype" + patternCount, "regex");
+    			writer.writeAttribute("NS1:patternenabled" + patternCount, "true");  // TODO: make this a setting allowed in pattern data
+    			writer.writeAttribute("NS1:patterndesc" + patternCount, data.getDesc());
+    			patternCount++;
+    		}
 		}
 
 		writer.writeEndElement();
