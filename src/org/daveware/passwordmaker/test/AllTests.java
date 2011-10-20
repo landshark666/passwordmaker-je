@@ -23,7 +23,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ DatabaseTest.class, LeetTest.class, PasswordMakerTest.class,
-		RDFDatabaseReaderTest.class })
+		RDFDatabaseReaderTest.class, TestAccountComparator.class })
 public class AllTests {
 
 }
