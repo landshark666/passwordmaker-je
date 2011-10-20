@@ -309,20 +309,19 @@ public class GuiMain implements DatabaseListener {
         eyeImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye.png");
         eyeClosedImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye_closed.png");
 
-        shlPasswordMaker.setMinimumSize(new Point(795, 345));
-        shlPasswordMaker.setSize(795, 345);
+        shlPasswordMaker.setMinimumSize(new Point(855, 345));
+        shlPasswordMaker.setSize(855, 345);
         setTitle();
 //        shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
         shlPasswordMaker.setLayout(new FormLayout());
         
         Sash sash = new Sash(shlPasswordMaker, SWT.VERTICAL);
         Group grpAccounts = new Group(shlPasswordMaker, SWT.NONE);
-        grpAccounts.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         FormData fd_grpAccounts = new FormData();
-        fd_grpAccounts.bottom = new FormAttachment(100, -10);
-        fd_grpAccounts.top = new FormAttachment(0, 5);
         fd_grpAccounts.left = new FormAttachment(0, 5);
         fd_grpAccounts.right = new FormAttachment(sash);
+        fd_grpAccounts.bottom = new FormAttachment(100, -10);
+        fd_grpAccounts.top = new FormAttachment(0, 5);
         grpAccounts.setLayoutData(fd_grpAccounts);
         grpAccounts.setText("Accounts");
         grpAccounts.setLayout(new GridLayout(1, false));
@@ -350,12 +349,12 @@ public class GuiMain implements DatabaseListener {
         filterIcon.setText("");
         
         accountFilterText = new Text(composite, SWT.BORDER);
+        accountFilterText.setFont(SWTResourceManager.getFont("Lucida Grande", 11, SWT.ITALIC));
         accountFilterText.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent arg0) {
         		onFilterModified(arg0);
         	}
         });
-        accountFilterText.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.ITALIC));
         accountFilterText.setText("type filter text");
         accountFilterText.setBounds(0, 0, 209, 23);
         accountFilterText.addFocusListener(new FocusAdapter() {
@@ -370,7 +369,7 @@ public class GuiMain implements DatabaseListener {
         });
         
         final FormData sashData = new FormData();
-        sashData.left = new FormAttachment(30);
+        sashData.left = new FormAttachment(22);
         sashData.top = new FormAttachment(0);
         sashData.bottom = new FormAttachment(100);
         sash.setLayoutData(sashData);
@@ -383,34 +382,29 @@ public class GuiMain implements DatabaseListener {
         	}
         });
         Group grpInput = new Group(shlPasswordMaker, SWT.NONE);
-        grpInput.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         grpInput.setText("Password Input && Search");
         FormData fd_grpInput = new FormData();
-        fd_grpInput.bottom = new FormAttachment(grpAccounts, 0, SWT.BOTTOM);
-        fd_grpInput.top = new FormAttachment(0, 5);
         fd_grpInput.right = new FormAttachment(100, -5);
         fd_grpInput.left = new FormAttachment(sash);
+        fd_grpInput.bottom = new FormAttachment(grpAccounts, 0, SWT.BOTTOM);
+        fd_grpInput.top = new FormAttachment(0, 5);
         grpInput.setLayoutData(fd_grpInput);
         GridLayout gl_grpInput = new GridLayout(2, false);
         grpInput.setLayout(gl_grpInput);
         
         Label lblDatabase = new Label(grpInput, SWT.NONE);
-        lblDatabase.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblDatabase.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblDatabase.setText("File:");
         
         textFilename = new Text(grpInput, SWT.BORDER);
-        textFilename.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         textFilename.setEditable(false);
         textFilename.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
         
         Label lblUrl = new Label(grpInput, SWT.NONE);
-        lblUrl.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblUrl.setText("URL Search:");
         
         editUrl = new Text(grpInput, SWT.BORDER);
-        editUrl.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         editUrl.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent arg0) {
@@ -419,29 +413,24 @@ public class GuiMain implements DatabaseListener {
         });
         
         Label lblAccount = new Label(grpInput, SWT.RIGHT);
-        lblAccount.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblAccount.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblAccount.setText("Account:");
         
         editAccount = new Text(grpInput, SWT.BORDER);
-        editAccount.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editAccount.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         editAccount.setEnabled(false);
         editAccount.setEditable(false);
         
         Label lblDescription = new Label(grpInput, SWT.RIGHT);
-        lblDescription.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblDescription.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
         lblDescription.setText("Description:");
         
         editDesc = new Text(grpInput, SWT.BORDER | SWT.V_SCROLL);
-        editDesc.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editDesc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         editDesc.setEnabled(false);
         editDesc.setEditable(false);
         
         Label lblUsername = new Label(grpInput, SWT.RIGHT);
-        lblUsername.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblUsername.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblUsername.setText("Username:");
         
@@ -451,16 +440,13 @@ public class GuiMain implements DatabaseListener {
                 regeneratePasswordAndDraw();
             }
         });
-        editUsername.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         
         Label lblMasterPw = new Label(grpInput, SWT.RIGHT);
-        lblMasterPw.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblMasterPw.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblMasterPw.setText("Master PW:");
         
         editMP = new Text(grpInput, SWT.BORDER | SWT.PASSWORD);
-        editMP.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editMP.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         editMP.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent arg0) {
@@ -480,7 +466,6 @@ public class GuiMain implements DatabaseListener {
         composite_1.setLayoutData(gd_composite_1);
         
         Label lblGenerated = new Label(composite_1, SWT.RIGHT);
-        lblGenerated.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblGenerated.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblGenerated.setText("Generated:");
         
@@ -530,7 +515,6 @@ public class GuiMain implements DatabaseListener {
         compositeButtons.setLayout(gl_compositeButtons);
         
         btnCopyToClipboard = new Button(compositeButtons, SWT.NONE);
-        btnCopyToClipboard.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         btnCopyToClipboard.setToolTipText("Copies the generated password to the clipboard and then based on the combobox next to the button:\r\n\r\n\"erase clipboard in\"\r\nClears the clipboard after X seconds.\r\n\r\n\"close PasswordMakerJE in\"\r\nSame thing as above but also closes PasswordMakerJE after X seconds.");
         btnCopyToClipboard.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -541,7 +525,6 @@ public class GuiMain implements DatabaseListener {
         btnCopyToClipboard.setText("Copy to clipboard, then");
         
         comboCopyBehavior = new Combo(compositeButtons, SWT.READ_ONLY);
-        comboCopyBehavior.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         comboCopyBehavior.setToolTipText("");
         comboCopyBehavior.setItems(new String[] {"erase clipboard in", "close app and erase clipboard in"});
         comboCopyBehavior.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -554,7 +537,6 @@ public class GuiMain implements DatabaseListener {
                 onSecondsFocusLost();
             }
         });
-        editCopySeconds.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         editCopySeconds.setText("5");
         GridData gd_editCloseSeconds = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
         gd_editCloseSeconds.widthHint = 33;
@@ -564,13 +546,11 @@ public class GuiMain implements DatabaseListener {
         secondsDecoration.setDescriptionText("The number of seconds must be a positive value");
         
         Label lblSeconds = new Label(compositeButtons, SWT.NONE);
-        lblSeconds.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblSeconds.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         lblSeconds.setText("seconds");
         
         accountTreeViewer = new TreeViewer(grpAccounts, SWT.BORDER);
         accountTree = accountTreeViewer.getTree();
-        accountTree.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         accountTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         
         Menu menu = new Menu(accountTree);
