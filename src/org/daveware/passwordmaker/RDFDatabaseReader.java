@@ -219,74 +219,61 @@ public class RDFDatabaseReader implements DatabaseReader {
         Account account = new Account();
         
         // This is the hash
-        String about = element.getAttribute("RDF:about").trim();
-        account.setId(about);
-        
-        String name = element.getAttribute("NS1:name").trim();
-        account.setName(name);
-        
-        String description = element.getAttribute("NS1:description").trim();
-        account.setDesc(description);
-        
-        String leetType = element.getAttribute("NS1:whereLeetLB").trim().toLowerCase();
-        account.setLeetType(LeetType.fromRdfString(leetType));
-        
-        String leetLevel = element.getAttribute("NS1:leetLevelLB").trim();
-        account.setLeetLevel(LeetLevel.fromString(leetLevel));
-        
-        String algorithm = element.getAttribute("NS1:hashAlgorithmLB").trim().toLowerCase();
-        account.setAlgorithm(AlgorithmType.fromRdfString(algorithm));
-        account.setHmac(algorithm.contains("hmac-"));
-        
-        String passwordLength = element.getAttribute("NS1:passwordLength").trim();
-        if(passwordLength.length()>0)
-            account.setLength(Integer.parseInt(passwordLength));
-        else
-            account.setLength(Account.DEFAULT_LENGTH);
-        
-        String username = element.getAttribute("NS1:usernameTB").trim();
-        account.setUsername(username);
-        
-        String modifier = element.getAttribute("NS1:counter").trim();
-        account.setModifier(modifier);
-        
-        String charset = element.getAttribute("NS1:charset").trim();
-        account.setCharacterSet(charset);
+        account.setId(element.getAttribute("RDF:about").trim());
+        account.setName(element.getAttribute("NS1:name").trim());
+        account.setDesc(element.getAttribute("NS1:description").trim());
 
-        String prefix = element.getAttribute("NS1:prefix").trim();
-        account.setPrefix(prefix);
-        
-        String suffix = element.getAttribute("NS1:suffix").trim();
-        account.setSuffix(suffix);
-        
-        // TODO: can this program be integrated as a plugin? If so, this will
-        // be useful.
-        String autoPopulate = element.getAttribute("NS1:autoPopulate").trim();
-        account.setAutoPop(autoPopulate.compareTo("true")==0);
-        
-        // I'm fairly sure I don't need this. I think this stores the tab index
-        // of the last time you edited this account.
-        //String selectedTabIndex = element.getAttribute("NS1:selectedTabIndex").trim();
-        
-        String url = element.getAttribute("NS1:urlToUse").trim();
-        account.setUrl(url);
-
-        // pattern info... I really hope nobody has more than 100000
-        for(int iPattern = 0; iPattern < 100000; ++iPattern) {
-            String pattern = element.getAttribute("NS1:pattern" + iPattern).trim();
-            String patternType = element.getAttribute("NS1:patterntype" + iPattern).trim();
-            String patternEnabled = element.getAttribute("NS1:patternenabled" + iPattern).trim();
-            String patternDesc = element.getAttribute("NS1:patterndesc" + iPattern).trim();
+        // Groups only have a name, about, and description attribute.
+        // If this is detected, mark it as a folder. Otherwise read
+        // the full account data set.
+        if(element.hasAttribute("NS1:hashAlgorithmLB")==false) {
+            account.setIsFolder(true);
+        }
+        else {
+            account.setLeetType(LeetType.fromRdfString(element.getAttribute("NS1:whereLeetLB").trim().toLowerCase()));
+            account.setLeetLevel(LeetLevel.fromString(element.getAttribute("NS1:leetLevelLB").trim()));
             
-            if(pattern.length()>0 || patternType.length()>0 || patternEnabled.length()>0 || patternDesc.length()>0) {
-                AccountPatternData data = new AccountPatternData();
-                data.setPattern(pattern);
-                data.setType(AccountPatternType.fromString(patternType));
-                data.setEnabled(patternEnabled.compareTo("true")==0);
-                data.setDesc(patternDesc);
-                account.getPatterns().add(data);
-            } else {
-                iPattern = 999999;
+            String algorithm = element.getAttribute("NS1:hashAlgorithmLB").trim().toLowerCase();
+            account.setAlgorithm(AlgorithmType.fromRdfString(algorithm));
+            account.setHmac(algorithm.contains("hmac-"));
+            
+            String passwordLength = element.getAttribute("NS1:passwordLength").trim();
+            if(passwordLength.length()>0)
+                account.setLength(Integer.parseInt(passwordLength));
+            else
+                account.setLength(Account.DEFAULT_LENGTH);
+            
+            account.setUsername(element.getAttribute("NS1:usernameTB").trim());
+            account.setModifier(element.getAttribute("NS1:counter").trim());
+            account.setCharacterSet(element.getAttribute("NS1:charset").trim());
+            account.setPrefix(element.getAttribute("NS1:prefix").trim());
+            account.setSuffix(element.getAttribute("NS1:suffix").trim());
+            account.setAutoPop(element.getAttribute("NS1:autoPopulate").trim().compareTo("true")==0);
+
+            // TODO: should preserve this, but I don't care much to
+            // I'm fairly sure I don't need this. I think this stores the tab index
+            // of the last time you edited this account.
+            //String selectedTabIndex = element.getAttribute("NS1:selectedTabIndex").trim();
+
+            account.setUrl(element.getAttribute("NS1:urlToUse").trim());
+    
+            // pattern info... I really hope nobody has more than 100000
+            for(int iPattern = 0; iPattern < 100000; ++iPattern) {
+                String pattern = element.getAttribute("NS1:pattern" + iPattern).trim();
+                String patternType = element.getAttribute("NS1:patterntype" + iPattern).trim();
+                String patternEnabled = element.getAttribute("NS1:patternenabled" + iPattern).trim();
+                String patternDesc = element.getAttribute("NS1:patterndesc" + iPattern).trim();
+                
+                if(pattern.length()>0 || patternType.length()>0 || patternEnabled.length()>0 || patternDesc.length()>0) {
+                    AccountPatternData data = new AccountPatternData();
+                    data.setPattern(pattern);
+                    data.setType(AccountPatternType.fromString(patternType));
+                    data.setEnabled(patternEnabled.compareTo("true")==0);
+                    data.setDesc(patternDesc);
+                    account.getPatterns().add(data);
+                } else {
+                    iPattern = 999999;
+                }
             }
         }
         
@@ -348,7 +335,8 @@ public class RDFDatabaseReader implements DatabaseReader {
                         if(parentAccount.hasChild(childAccount)==false) {
                             parentAccount.getChildren().add(childAccount);
                             
-                            // If the child has children, add it to the parentIdStack for later processing
+                            // If the child has children, add it to the parentIdStack for later processing, also mark
+                            // it as a folder (which should have been done already based on it not having an algorithm.
                             if(seqMap.containsKey(childAccount.getId())) {
                                 parentIdStack.add(childId);
                                 childAccount.setIsFolder(true);
