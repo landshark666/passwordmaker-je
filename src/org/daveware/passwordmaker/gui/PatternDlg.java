@@ -78,6 +78,7 @@ public class PatternDlg extends Dialog {
      */
     public AccountPatternData open() {
         createContents();
+        shlUrlPatternMatching.pack();
         shlUrlPatternMatching.open();
         shlUrlPatternMatching.layout();
         
@@ -150,9 +151,9 @@ public class PatternDlg extends Dialog {
      * Create contents of the dialog.
      */
     private void createContents() {
-        shlUrlPatternMatching = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.RESIZE);
+        shlUrlPatternMatching = new Shell(getParent(), SWT.DIALOG_TRIM);
         shlUrlPatternMatching.setMinimumSize(new Point(450, 205));
-        shlUrlPatternMatching.setSize(450, 200);
+        shlUrlPatternMatching.setSize(450, 215);
         shlUrlPatternMatching.setText("URL Pattern Matching Data");
         shlUrlPatternMatching.setLayout(new FormLayout());
         
@@ -229,7 +230,9 @@ public class PatternDlg extends Dialog {
         button.setText("OK");
         button.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
         FormData fd_button = new FormData();
-        fd_button.bottom = new FormAttachment(100, -5);
+        fd_button.bottom = new FormAttachment(100, -9);
+        fd_button.height = 32;
+        fd_button.top = new FormAttachment(0, 136);
         fd_button.right = new FormAttachment(100, -10);
         fd_button.width = 90;
         button.setLayoutData(fd_button);
@@ -245,7 +248,9 @@ public class PatternDlg extends Dialog {
         button_1.setText("Cancel");
         button_1.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
         FormData fd_button_1 = new FormData();
-        fd_button_1.bottom = new FormAttachment(100, -5);
+        fd_button_1.bottom = new FormAttachment(100, -9);
+        fd_button_1.height = 32;
+        fd_button_1.top = new FormAttachment(0, 136);
         fd_button_1.right = new FormAttachment(100, -106);
         fd_button_1.width = 90;
         button_1.setLayoutData(fd_button_1);

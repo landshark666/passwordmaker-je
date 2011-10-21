@@ -28,6 +28,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormAttachment;
 
 /**
  * Implements a dialog where the user can choose sorting options.
@@ -42,7 +45,7 @@ public class SortDlg extends Dialog {
     private Label lblGroupLocation;
     private Combo comboStyle;
     private Combo comboGroupLocation;
-    private Label label;
+    private Label separator;
     
     private SortOptions sortOptions = new SortOptions();
     private boolean okSelected = false;
@@ -88,10 +91,15 @@ public class SortDlg extends Dialog {
      */
     private void createContents() {
         shlSortOptions = new Shell(getParent(), getStyle());
-        shlSortOptions.setSize(317, 149);
+        shlSortOptions.setSize(333, 150);
         shlSortOptions.setText("Sort Options");
+        shlSortOptions.setLayout(new FormLayout());
         
         btnCancel = new Button(shlSortOptions, SWT.NONE);
+        FormData fd_btnCancel = new FormData();
+        fd_btnCancel.width = 90;
+        fd_btnCancel.height = 32;
+        btnCancel.setLayoutData(fd_btnCancel);
         btnCancel.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
@@ -100,9 +108,14 @@ public class SortDlg extends Dialog {
         });
         btnCancel.setText("Cancel");
         btnCancel.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
-        btnCancel.setBounds(115, 87, 90, 32);
         
         btnOk = new Button(shlSortOptions, SWT.NONE);
+        fd_btnCancel.right = new FormAttachment(100, -105);
+        FormData fd_btnOk = new FormData();
+        fd_btnOk.width = 90;
+        fd_btnOk.height = 32;
+        fd_btnOk.top = new FormAttachment(0, 81);
+        btnOk.setLayoutData(fd_btnOk);
         btnOk.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
@@ -111,30 +124,52 @@ public class SortDlg extends Dialog {
         });
         btnOk.setText("OK");
         btnOk.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
-        btnOk.setBounds(211, 87, 90, 32);
         
         lblSortStyle = new Label(shlSortOptions, SWT.NONE);
+        FormData fd_lblSortStyle = new FormData();
+        fd_lblSortStyle.right = new FormAttachment(0, 106);
+        fd_lblSortStyle.top = new FormAttachment(0, 10);
+        fd_lblSortStyle.left = new FormAttachment(0, 16);
+        lblSortStyle.setLayoutData(fd_lblSortStyle);
         lblSortStyle.setAlignment(SWT.RIGHT);
-        lblSortStyle.setBounds(16, 10, 90, 15);
         lblSortStyle.setText("Sort Style:");
         
         lblGroupLocation = new Label(shlSortOptions, SWT.NONE);
+        FormData fd_lblGroupLocation = new FormData();
+        fd_lblGroupLocation.right = new FormAttachment(0, 106);
+        fd_lblGroupLocation.top = new FormAttachment(0, 42);
+        fd_lblGroupLocation.left = new FormAttachment(0, 10);
+        lblGroupLocation.setLayoutData(fd_lblGroupLocation);
         lblGroupLocation.setAlignment(SWT.RIGHT);
-        lblGroupLocation.setBounds(10, 42, 96, 15);
         lblGroupLocation.setText("Group Location:");
         
         comboStyle = new Combo(shlSortOptions, SWT.READ_ONLY);
+        fd_btnOk.right = new FormAttachment(100, -9);
+        FormData fd_comboStyle = new FormData();
+        fd_comboStyle.left = new FormAttachment(lblSortStyle, 9);
+        fd_comboStyle.right = new FormAttachment(100, -9);
+        fd_comboStyle.top = new FormAttachment(0, 7);
+        comboStyle.setLayoutData(fd_comboStyle);
         comboStyle.setItems(new String[] {"Ascending (A-Z)", "Descending (Z-A)"});
-        comboStyle.setBounds(116, 7, 185, 23);
         comboStyle.select(0);
         
         comboGroupLocation = new Combo(shlSortOptions, SWT.READ_ONLY);
+        FormData fd_comboGroupLocation = new FormData();
+        fd_comboGroupLocation.left = new FormAttachment(lblGroupLocation, 9);
+        fd_comboGroupLocation.right = new FormAttachment(100, -9);
+        fd_comboGroupLocation.top = new FormAttachment(0, 39);
+        comboGroupLocation.setLayoutData(fd_comboGroupLocation);
         comboGroupLocation.setItems(new String[] {"Groups at the top", "Groups on the bottom"});
-        comboGroupLocation.setBounds(116, 39, 185, 23);
         comboGroupLocation.select(0);
         
-        label = new Label(shlSortOptions, SWT.SEPARATOR | SWT.HORIZONTAL);
-        label.setBounds(10, 76, 291, 2);
+        separator = new Label(shlSortOptions, SWT.SEPARATOR | SWT.HORIZONTAL);
+        fd_btnCancel.top = new FormAttachment(0, 81);
+        FormData fd_separator = new FormData();
+        fd_separator.top = new FormAttachment(comboGroupLocation, 10);
+        fd_separator.left = new FormAttachment(0, 3);
+        fd_separator.right = new FormAttachment(100, -3);
+        fd_separator.bottom = new FormAttachment(100, -47);
+        separator.setLayoutData(fd_separator);
 
     }
     
