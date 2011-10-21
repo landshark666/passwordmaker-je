@@ -30,6 +30,8 @@
 	<condition property="isWindows">
 	    <os family="windows" />
 	</condition>
+	
+	<property name="nsis-path" value="D:/Program Files (x86)/NSIS" />
 		
 	<target name="build_all" depends="build-jars, build-nsis, build-osx-app-bundles, build-osx-dmgs" />
 	
@@ -68,8 +70,11 @@
         <taskdef name="nsis"
             classpath="${basedir}/lib/nsisant-1.3.jar"
             classname="com.danielreese.nsisant.Task" />
-        <nsis script="NSIS\win32-setup.nsi" path="D:/Program Files (x86)/NSIS">
-        	<define name="VERSION" value="${version-number}" />
+        <nsis script="NSIS\win32-setup.nsi" path="${nsis-path}">
+            <define name="VERSION" value="${version-number}" />
+        </nsis>
+        <nsis script="NSIS\win32_x64-setup.nsi" path="${nsis-path}">
+            <define name="VERSION" value="${version-number}" />
         </nsis>
 	</target>
 
