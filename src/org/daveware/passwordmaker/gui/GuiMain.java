@@ -1486,7 +1486,7 @@ public class GuiMain implements DatabaseListener {
     	           gc.setFont(passwordFont);
     	           int x = 0;
     	           int xPos = 5;
-    	           int yPos = 2;
+    	           int yPos = 1;
     	           
     	           if(Utilities.isMac())
     	               yPos = 7;
