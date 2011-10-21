@@ -31,7 +31,6 @@
 	    <os family="windows" />
 	</condition>
 		
-	<echo message="${os.name} - ${os.arch} ${os.version}" />
 	<target name="build_all" depends="build-jars, build-nsis, build-osx-app-bundles, build-osx-dmgs" />
 	
 	<!-- Build the jar files -->
