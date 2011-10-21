@@ -379,6 +379,12 @@ public class AccountDlg {
 		lblName.setText("Name:");
 		
 		textName = new Text(composite, SWT.BORDER);
+		textName.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+                updatePasswordStrengthMeter();
+		    }
+		});
+
 		textName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		nameDecoration = new ControlDecoration(textName, SWT.LEFT | SWT.TOP);
