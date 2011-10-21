@@ -26,10 +26,22 @@
 	<property name="os-platform" value="cocoa" />
 	<property name="os-arch" value="macosx-x86_64" />
 	-->
+	<property name="full-app-path" value="${basedir}/dist/pwmje-${os-platform}-${os-arch}.app" />
 	
 	<target name="build-osx-bundle" description="Create OSX app bundle">
     	<echo message="*** Bundling OSX app bundle pwmje-${os-platform}-${os-arch}.app" />
 
+		<!-- forcefully create the directory prior to deleting it so that if it
+		     does not already exist, we can still fail on error. This is to get around
+		     the ugly fact that ant doesn't support clean-logic. Instead you have to
+		     do these fugly condition tags and extra tasks with dependencies set up.
+		     
+		     I can't imagine how horrible this would look in a complex corporate
+		     build environment.
+		-->
+		<mkdir dir="${full-app-path}" />
+		<delete dir="${full-app-path}" failonerror="true" />
+		
 		<taskdef name="jarbundler"
 			classpath="${basedir}/lib/jarbundler-2.2.0.jar"
 			classname="net.sourceforge.jarbundler.JarBundler" />

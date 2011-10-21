@@ -25,13 +25,14 @@
   -->
 <project default="build_all" name="Creates all runnable jars, application bundles, and setup binaries">
     <condition property="isMac">
-        <os family="mac" />
+    	<os family="mac" />
     </condition>
 	<condition property="isWindows">
 	    <os family="windows" />
 	</condition>
 		
-	<target name="build_all" depends="build-jars, build-nsis, build-osx-app-bundles" />
+	<echo message="${os.name} - ${os.arch} ${os.version}" />
+	<target name="build_all" depends="build-jars, build-nsis, build-osx-app-bundles, build-osx-dmgs" />
 	
 	<!-- Build the jar files -->
     <target name="build-jars">
@@ -92,13 +93,13 @@
     
 	<!-- Build MAC-OSX disk images -->
 	<target name="build-osx-dmgs" if="isMac">
-        <ant antfile="build-osx-dmg" target="build-osx-dmg">
+        <ant antfile="build-osx-dmg.xml" target="build-osx-dmg">
             <property name="version-number" value="${version-number}" />
             <property name="os-platform" value="cocoa" />
             <property name="os-arch" value="macosx" />
         </ant>
 
-		<ant antfile="build-osx-dmg" target="build-osx-dmg">
+		<ant antfile="build-osx-dmg.xml" target="build-osx-dmg">
             <property name="version-number" value="${version-number}" />
             <property name="os-platform" value="cocoa" />
             <property name="os-arch" value="macosx_x86_64" />

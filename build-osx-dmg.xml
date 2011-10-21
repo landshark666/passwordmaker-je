@@ -35,7 +35,6 @@
     	<move tofile="${dist}/${app.name}.app" file="${dist}/${app.fullname}.app" />
 
     	<!-- Create a temporary disk image -->
-    	<echo message="HDI: ${dist}/${app.fullname}.app" />
     	<exec executable="/usr/bin/hdiutil" os="Mac OS X" failonerror="true">
     		<arg value="create" />
     		<arg value="-srcfolder" />
