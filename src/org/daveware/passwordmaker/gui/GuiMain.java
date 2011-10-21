@@ -20,6 +20,7 @@ package org.daveware.passwordmaker.gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 
 import org.daveware.passwordmaker.Account;
@@ -274,18 +275,39 @@ public class GuiMain implements DatabaseListener {
         accountTreeViewer.addFilter(new ViewerFilter() {
 			@Override
 			public boolean select(Viewer viewer, Object parentElement, Object element) {
+			    ArrayList<Account> parentList = new ArrayList<Account>();
+			    
 				if(isFiltering==false)
 					return true;
+				
 				if(element==null)
 					return false;
-				Account account = (Account)element;
-				// Never filter out parents
-				if(account.getChildren().size()>0)
-					return true;
 				
-				String name = account.getName().toLowerCase();
-				String text = accountFilterText.getText().toLowerCase();
-				return name.contains(text);
+				String filterText = accountFilterText.getText().toLowerCase();
+				Account account = (Account)element;
+				
+				if(account.isFolder()==false)
+				    return account.getName().toLowerCase().contains(filterText);
+				
+
+				// Search through all children looking for a matching account.  If there is
+				// a match, then this folder must remain visible.
+				parentList.add(account);
+				while(parentList.size()>0) {
+				    account = parentList.remove(0);
+				    
+				    for(Account child : account.getChildren()) {
+				        if(child.isFolder()) {
+				            parentList.add(child);
+				        }
+				        else {
+				            if(child.getName().toLowerCase().contains(filterText))
+				                return true;
+				        }
+				    }
+				}
+				
+				return false;
 			}
 		});
     }
