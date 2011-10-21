@@ -106,15 +106,13 @@ public class Main {
             switch(c) {
                 case 'c': // Set the number of seconds to hold the password on the clipboard before erasing and exiting
                     // TODO: option 'c' is broken
-                    /*
                     try {
-                        config.setClipboardTimeout(Integer.parseInt(g.getOptarg()));
-                        if(config.getClipboardTimeout() < 5)
+                        cmdLineSettings.timeout = Integer.parseInt(g.getOptarg());
+                        if(cmdLineSettings.timeout < 0)
                             throw new Exception();
                     } catch(Exception e) {
-                        throw new Exception("Invalid -c/--clipboard value, must be numeric value of 5 or greater: " + g.getOptarg());
+                        throw new Exception("Invalid -c/--clipboard value, must be numeric value of 0 or greater: " + g.getOptarg());
                     }
-                    */
                     break;
                     
                 case 'h': // print help
