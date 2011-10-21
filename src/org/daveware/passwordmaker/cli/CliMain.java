@@ -39,15 +39,22 @@ public class CliMain {
         config = c;
     }
 
-    
+    /**
+     * Copies the password to the clipboard and sleeps for numSeconds seconds. Then erases
+     * the clipboard.
+     * @param arr The password to copy.
+     * @param numSeconds The number of seconds to wait. If this is 0 or less, nothing happens.
+     */
     public void clipboardAndWait(SecureCharArray arr, int numSeconds) {
-        Utilities.copyToClipboard(arr);
-            
-        try {
-            Thread.sleep(1000 * numSeconds);
-        } catch(Exception e) {}
-
-        Utilities.clearClipboard();    
+        
+        if(numSeconds>0) {
+            try {
+                Utilities.copyToClipboard(arr);
+                Thread.sleep(1000 * numSeconds);
+            } catch(Exception e) {}
+    
+            Utilities.clearClipboard();
+        }
     }
 
     /**
@@ -80,12 +87,10 @@ public class CliMain {
         char [] secretArray = null;
         int ret = 1;
 
-        /*
-        if(config.quiet==true && config.getClipboardTimeout()<5) {
-            System.err.println("Quiet mode cannot be used with a clipboard (-c/--clipboard) value of less than 5");
+        if(config.quiet==true && config.timeout<=0) {
+            System.err.println("Quiet mode cannot be used with a clipboard (-c/--clipboard) value of 0");
             return 1;
         }
-        */
         
         try {
             RDFDatabaseReader rdfReader = new RDFDatabaseReader();
@@ -111,20 +116,23 @@ public class CliMain {
                             System.out.println("");
                         }
                         
-                        int numSeconds = 10;
+                        
+                        int numSeconds = config.timeout < 0 ? 0 : config.timeout;
+
+                        /* Ignore what is in the RDF when using the CLI.
                         try {
                             numSeconds = Integer.parseInt(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
                         } catch(Exception e) {
                             numSeconds = 10;
                         }
+                        */
                         clipboardAndWait(output, numSeconds);
-                        
                         ret = 0;
                     }
                 }
             }
             else {
-                System.err.println("Unable to locate account");
+                System.err.println("Unable to locate account with URL " + config.matchUrl);
                 ret = 1;
             }
         }
