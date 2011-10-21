@@ -78,13 +78,14 @@ public class PatternDlg extends Dialog {
      */
     public AccountPatternData open() {
         createContents();
-        shlUrlPatternMatching.pack();
-        shlUrlPatternMatching.open();
-        shlUrlPatternMatching.layout();
         
         populateGuiFromData();
         setupDecorators();
         textName.setFocus();
+
+        shlUrlPatternMatching.pack();
+        shlUrlPatternMatching.open();
+        shlUrlPatternMatching.layout();        
         
         Display display = getParent().getDisplay();
         while (!shlUrlPatternMatching.isDisposed()) {
@@ -151,14 +152,13 @@ public class PatternDlg extends Dialog {
      * Create contents of the dialog.
      */
     private void createContents() {
-        shlUrlPatternMatching = new Shell(getParent(), SWT.DIALOG_TRIM);
-        shlUrlPatternMatching.setMinimumSize(new Point(450, 205));
-        shlUrlPatternMatching.setSize(450, 215);
+        shlUrlPatternMatching = new Shell(getParent(), getStyle());
+        shlUrlPatternMatching.setMinimumSize(new Point(450, 100));
+        shlUrlPatternMatching.setSize(450, 135);
         shlUrlPatternMatching.setText("URL Pattern Matching Data");
         shlUrlPatternMatching.setLayout(new FormLayout());
         
         lblName = new Label(shlUrlPatternMatching, SWT.NONE);
-        lblName.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         FormData fd_lblName = new FormData();
         fd_lblName.top = new FormAttachment(0, 10);
         fd_lblName.left = new FormAttachment(0, 10);
@@ -185,17 +185,16 @@ public class PatternDlg extends Dialog {
         textPattern.setLayoutData(fd_textPattern);
         
         chkEnabled = new Button(shlUrlPatternMatching, SWT.CHECK);
-        chkEnabled.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         FormData fd_chkEnabled = new FormData();
         fd_chkEnabled.left = new FormAttachment(lblName, 0, SWT.LEFT);
         chkEnabled.setLayoutData(fd_chkEnabled);
         chkEnabled.setText("&Enabled");
         
         grpPatternContains = new Group(shlUrlPatternMatching, SWT.NONE);
-        grpPatternContains.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         grpPatternContains.setText("Pattern Contains");
         grpPatternContains.setLayout(new GridLayout(2, false));
         FormData fd_grpPatternContains = new FormData();
+        //fd_grpPatternContains.bottom = new FormAttachment(100, -50);
         fd_grpPatternContains.top = new FormAttachment(textPattern, 6);
         fd_grpPatternContains.left = new FormAttachment(lblName, 0, SWT.LEFT);
         fd_grpPatternContains.right = new FormAttachment(100, -10);
@@ -203,19 +202,15 @@ public class PatternDlg extends Dialog {
         
         btnWildcards = new Button(grpPatternContains, SWT.RADIO);
         btnWildcards.setSelection(true);
-        btnWildcards.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         btnWildcards.setText("Wildcards");
         
         lblExamplemailyahoocom = new Label(grpPatternContains, SWT.NONE);
-        lblExamplemailyahoocom.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblExamplemailyahoocom.setText("Example: *://mail.yahoo.com/*");
         
         btnRegularExpression = new Button(grpPatternContains, SWT.RADIO);
-        btnRegularExpression.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         btnRegularExpression.setText("Regular Expression");
         
         lblExampleHttpsmailyahoo = new Label(grpPatternContains, SWT.NONE);
-        lblExampleHttpsmailyahoo.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblExampleHttpsmailyahoo.setText("Example: https?://mail\\.yahoo\\.com\\/.*");
         
         button = new Button(shlUrlPatternMatching, SWT.NONE);
@@ -226,13 +221,11 @@ public class PatternDlg extends Dialog {
                 onOkSelected();
             }
         });
-        button.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         button.setText("OK");
         button.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
         FormData fd_button = new FormData();
-        fd_button.bottom = new FormAttachment(100, -9);
-        fd_button.height = 32;
-        fd_button.top = new FormAttachment(0, 136);
+        fd_button.bottom = new FormAttachment(100, -8);
+        fd_button.top = new FormAttachment(grpPatternContains, 8);
         fd_button.right = new FormAttachment(100, -10);
         fd_button.width = 90;
         button.setLayoutData(fd_button);
@@ -244,19 +237,16 @@ public class PatternDlg extends Dialog {
                 onCancelSelected();
             }
         });
-        button_1.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         button_1.setText("Cancel");
         button_1.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
         FormData fd_button_1 = new FormData();
-        fd_button_1.bottom = new FormAttachment(100, -9);
-        fd_button_1.height = 32;
-        fd_button_1.top = new FormAttachment(0, 136);
+        fd_button_1.bottom = new FormAttachment(100, -8);
+        fd_button_1.top = new FormAttachment(grpPatternContains, 8);
         fd_button_1.right = new FormAttachment(100, -106);
         fd_button_1.width = 90;
         button_1.setLayoutData(fd_button_1);
         
         lblUrlOrUrl = new Label(shlUrlPatternMatching, SWT.NONE);
-        lblUrlOrUrl.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.NORMAL));
         lblUrlOrUrl.setAlignment(SWT.RIGHT);
         FormData fd_lblUrlOrUrl = new FormData();
         fd_lblUrlOrUrl.left = new FormAttachment(lblName, 0, SWT.LEFT);
