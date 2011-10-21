@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+ PasswordMaker Java Edition - One Password To Rule Them All
+ Copyright (C) 2011 Dave Marotti
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+  
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+  
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!-- A huge thanks to http://www.rkuntz.org/pmwiki.php?n=Code.AntDiskImage, which had
+     an example of how to create a dmg file from ant. -->
+<project default="build-osx-dmg" name="Creates an OSX disk image file">
+    <target name="build-osx-dmg">
+    	<property name="app.name" value="pwmje" />
+    	<property name="app.fullname" value="pwmje-${os-platform}-${os-arch}" />
+    	<property name="dist" value="dist" />
+		<property name="mountdir" value="/tmp/" />
+    	
+    	<echo message="*** Building ${dist}/${app.fullname}-${version-number}.dmg" />
+
+    		<!-- Delete previously created DMG -->
+		<delete file="${dist}/${app.name}.dmg" quiet="yes" failonerror="false" />
+    	<delete file="${dist}/${app.name}-tmp.dmg" quiet="yes" failonerror="false" />
+    	
+    	<!-- Rename the .app to strip out the arch/platform details -->
+    	<move tofile="${dist}/${app.name}.app" file="${dist}/${app.fullname}.app" />
+
+    	<!-- Create a temporary disk image -->
+    	<echo message="HDI: ${dist}/${app.fullname}.app" />
+    	<exec executable="/usr/bin/hdiutil" os="Mac OS X" failonerror="true">
+    		<arg value="create" />
+    		<arg value="-srcfolder" />
+			<arg value="${dist}/${app.name}.app" />
+    		<arg value="-volname" />
+    		<arg value="${app.name}" />
+    		<arg value="-ov" />
+    		<arg value="${dist}/${app.name}-tmp.dmg" />
+    		<arg value="-format" />
+    		<arg value="UDRW" />
+    	</exec>
+    	
+    	<!-- Unrename the original .app -->
+    	<move tofile="${dist}/${app.fullname}.app" file="${dist}/${app.name}.app" />
+    	
+    	<!-- Attach the temporary image -->
+    	<exec executable="/usr/bin/hdiutil" os="Mac OS X" failonerror="true">
+    		<arg value="attach" />
+    		<arg value="${dist}/${app.name}-tmp.dmg" />
+    		<arg value="-mountroot" />
+    		<arg value="${mountdir}/" />
+    	</exec>
+    	
+    	<!-- Copy the background, the volume icon, and DS_Store files -->
+    	<mkdir dir="${mountdir}/${app.name}/.background" />
+    	<copy file="icons/dmg-bg.png" tofile="${mountdir}/${app.name}/.VolumeIcon.icns" overwrite="true" />
+    	<!--
+    	<copy file="DS_Store" tofile="${mountdir}/${app.name}/.DS_Store" overwrite="true" />
+    	-->
+    	
+    	<!-- Indicate that we want a custom icon -->
+		<exec executable="/Developer/Tools/SetFile" os="Mac OS X">
+			<arg value="-a" />
+    		<arg value="C" />
+			<arg value="${mountdir}/${app.name}" />
+    	</exec>
+    	
+    	<!-- Add a symbolic link to the Applications directory -->
+    	<symlink link="${mountdir}/${app.name}/Applications" resource="/Applications/" />
+
+		<!-- Detach the temporary image -->
+		<exec executable="/usr/bin/hdiutil" os="Mac OS X" failonerror="true">
+    		<arg value="detach" />
+    		<arg value="${mountdir}/${app.name}" />
+		</exec>
+    	
+    	<!-- Compress it to a new image -->
+		<exec executable="/usr/bin/hdiutil" os="Mac OS X" failonerror="true">
+    		<arg value="convert" />
+    		<arg value="${dist}/${app.name}-tmp.dmg" />
+    		<arg value="-format" />
+			<arg value="UDZO" />
+			<arg value="-o" />
+			<arg value="${dist}/${app.fullname}-${version-number}.dmg" />
+		</exec>
+	
+    	<!-- Delete the temporary image -->
+		<delete file="${dist}/${app.name}-tmp.dmg" failonerror="true" />
+    </target>
+</project>
