@@ -21,7 +21,6 @@ Name "PasswordMaker Java Edition (64-bit)"
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 0.5.0
 !define COMPANY "Dave Marotti"
 !define URL http://code.google.com/p/passwordmaker-je/
 
@@ -79,7 +78,7 @@ Section -Main SEC0000
     SetShellVarContext all
     SetOutPath $INSTDIR
     SetOverwrite on
-    File dist\pwmje-win32-win32_x86_64.jar
+    File ..\dist\pwmje-win32-win32_x86_64.jar
     File ..\icons\pwmje.ico
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 SectionEnd
