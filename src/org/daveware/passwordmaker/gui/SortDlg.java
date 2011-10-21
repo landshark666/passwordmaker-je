@@ -31,6 +31,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.graphics.Point;
 
 /**
  * Implements a dialog where the user can choose sorting options.
@@ -91,14 +92,15 @@ public class SortDlg extends Dialog {
      */
     private void createContents() {
         shlSortOptions = new Shell(getParent(), getStyle());
+        shlSortOptions.setMinimumSize(new Point(50, 28));
         shlSortOptions.setSize(333, 150);
         shlSortOptions.setText("Sort Options");
         shlSortOptions.setLayout(new FormLayout());
         
         btnCancel = new Button(shlSortOptions, SWT.NONE);
         FormData fd_btnCancel = new FormData();
+        fd_btnCancel.bottom = new FormAttachment(100, -8);
         fd_btnCancel.width = 90;
-        fd_btnCancel.height = 32;
         btnCancel.setLayoutData(fd_btnCancel);
         btnCancel.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -112,8 +114,8 @@ public class SortDlg extends Dialog {
         btnOk = new Button(shlSortOptions, SWT.NONE);
         fd_btnCancel.right = new FormAttachment(100, -105);
         FormData fd_btnOk = new FormData();
+        fd_btnOk.bottom = new FormAttachment(100, -8);
         fd_btnOk.width = 90;
-        fd_btnOk.height = 32;
         fd_btnOk.top = new FormAttachment(0, 81);
         btnOk.setLayoutData(fd_btnOk);
         btnOk.addSelectionListener(new SelectionAdapter() {
