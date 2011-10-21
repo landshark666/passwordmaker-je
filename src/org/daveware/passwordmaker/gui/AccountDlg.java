@@ -283,6 +283,7 @@ public class AccountDlg {
 		    tbtmExtended = null;
 		}
 		
+		shlAccountSettings.pack();
 		shlAccountSettings.open();
 		shlAccountSettings.layout();
 		
@@ -306,7 +307,12 @@ public class AccountDlg {
 	protected void createContents() {
 		// "SHEET" is working for now, not gonna mess with it. I've heard this makes it arrive on the
 		// screen in a mac-way on OSX. On windows this seems to properly make it modal.
-		shlAccountSettings = new Shell(Display.getDefault(), SWT.SHEET);
+	    int style = SWT.SHELL_TRIM | SWT.APPLICATION_MODAL;
+	    
+	    if(Utilities.isMac())
+	        style = SWT.SHEET;
+	    
+		shlAccountSettings = new Shell(Display.getDefault(), style);
 		shlAccountSettings.addDisposeListener(new DisposeListener() {
 		    public void widgetDisposed(DisposeEvent arg0) {
 		        onDisposing();
@@ -325,6 +331,7 @@ public class AccountDlg {
 		});
 		btnOk.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
 		FormData fd_btnOk = new FormData();
+		fd_btnOk.height = 32;
 		//fd_btnok.top = new FormAttachment(0, 417);
 		fd_btnOk.right = new FormAttachment(100, -10);
 		fd_btnOk.width = 90;
@@ -342,6 +349,7 @@ public class AccountDlg {
 		});
 		btnCancel.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
 		FormData fd_btnCancel = new FormData();
+		fd_btnCancel.height = 32;
 		fd_btnCancel.top = new FormAttachment(btnOk, 0, SWT.TOP);
 		fd_btnCancel.right = new FormAttachment(btnOk, -6);
 		fd_btnCancel.width = 90;
@@ -736,7 +744,8 @@ public class AccountDlg {
     }
     
 	void onAddPatternSelected() {
-        PatternDlg dlg = new PatternDlg(shlAccountSettings, SWT.SHEET, new AccountPatternData());
+	    int style = Utilities.isMac() ? SWT.SHEET : SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL;
+        PatternDlg dlg = new PatternDlg(shlAccountSettings, style, new AccountPatternData());
         AccountPatternData newData = dlg.open();
         
         if(newData!=null) {
@@ -797,7 +806,8 @@ public class AccountDlg {
 	        return;
 	    
 	    AccountPatternData newData;
-	    PatternDlg dlg = new PatternDlg(shlAccountSettings, SWT.SHEET, selectedPattern);
+	    int style = Utilities.isMac() ? SWT.SHEET : SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL;
+	    PatternDlg dlg = new PatternDlg(shlAccountSettings, style, selectedPattern);
 	    
 	    newData = dlg.open();
 	    if(newData!=null) {
