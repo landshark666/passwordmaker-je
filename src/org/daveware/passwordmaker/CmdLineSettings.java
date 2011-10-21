@@ -35,6 +35,7 @@ public class CmdLineSettings {
     public String matchUrl = null;
     public boolean quiet = false;
     public boolean nogui = false;
+    public int timeout = -1;
     
     public CmdLineSettings() {
     }
