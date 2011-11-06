@@ -23,7 +23,7 @@ import gnu.getopt.LongOpt;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.daveware.passwordmaker.cli.CliMain;
+import org.daveware.passwordmakerapp.cli.CliMain;
 import org.daveware.passwordmakerapp.gui.GuiMain;
 
 /**
