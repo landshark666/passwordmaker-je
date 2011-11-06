@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+ PasswordMaker Java Edition - One Password To Rule Them All
+ Copyright (C) 2011 Dave Marotti
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+  
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+  
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!-- 
+  PWM-JE build file for compiling without Eclipse.
+-->
+<project default="compile-app" name="Compiles the application">
+	<property name="src.dir"   value="src" />
+	<property name="build.dir" value="bin" />
+	<property name="dist.dir"  value="dist" />
+	
+	<path id="classpath-libonly">
+		<fileset dir="lib">
+			<include name="bcprov-jdk16-146.jar" />
+			<include name="junit-4.8.2.jar" />
+		</fileset>
+	</path>
+	
+    <path id="classpath-app">
+        <fileset dir="lib">
+            <include name="bcprov-jdk16-146.jar" />
+            <include name="junit-4.8.2.jar" />
+        	<include name="java-getopt-1.0.13.jar" />
+        	<include name="jface/*.jar" />
+        	<include name="swt-3.7/swt-win32-win32.jar" />
+        </fileset>
+    </path>	
+	
+	<!-- TARGET: clean
+	     Removes all files in the build and dist directories, but not the directories
+	     themselves.
+	-->
+	<target name="clean">
+		<delete>
+			<fileset dir="${build.dir}">
+			    <include name="**/*" />
+			</fileset>
+			<fileset dir="${dist.dir}">
+			    <include name="**/*" />
+			</fileset>
+		</delete>
+	</target>
+	
+    <!-- TARGET: compile-lib
+         Compiles only what is necessary to use the pwm library.
+    -->	<target name="compile-lib" depends="clean">
+	   <mkdir dir="${build.dir}" />
+    	<javac srcdir="${src.dir}" destdir="${build.dir}" 
+    		includes="org/daveware/passwordmaker/**"
+    		excludes="org/daveware/passwordmakerapp" >
+    		<classpath refid="classpath-libonly" />
+    	</javac>
+	</target>
+	
+    <!-- TARGET: compile-app
+         Compiles the full applicaiton.
+    -->    
+	<target name="compile-app" depends="clean">
+       <mkdir dir="${build.dir}" />
+        <javac srcdir="${src.dir}" destdir="${build.dir}" > 
+            <classpath refid="classpath-app" />
+        </javac>
+    </target>	
+	
+</project>

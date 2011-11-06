@@ -55,4 +55,26 @@ Built-At: ${build-info.current-time}</echo>
         	<zipfileset dir="lib/jface" includes="org.eclipse.ui.workbench_3.7.0.I20110519-0100.jar" />
         </jar>
     </target>
+	
+	<target name="build-pwmje-lib-jar">
+        <tstamp prefix="build-info">
+            <format property="current-date" pattern="d-MMMM-yyyy" locale="en" />
+            <format property="current-time" pattern="hh:mm:ss a z" locale="en" />
+            <format property="year-month-day" pattern="yyyy-MM-dd" locale="en" />
+        </tstamp>
+        <echo message="*** Building pwmje-lib.jar version ${version-number}" />
+        <echo file="dist/build-info.properties" append="false">Implementation-Version: ${version-number} 
+Built-On: ${build-info.current-date}
+Built-At: ${build-info.current-time}</echo>
+        <jar destfile="dist/pwmje-lib.jar">
+            <manifest>
+                <attribute name="Built-On" value="${build-info.current-date}" />
+                <attribute name="Build-At" value="${build-info.current-time}" />
+                <attribute name="Implementation-Version" value="${version-number}" />
+            </manifest>
+            <fileset file="dist/build-info.properties" />
+            <zipfileset src="lib/bcprov-jdk16-146.jar" />
+            <fileset dir="bin" includes="org/daveware/passwordmaker/**"/>
+        </jar>	
+	</target>
 </project>
