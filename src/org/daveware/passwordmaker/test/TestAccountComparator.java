@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.daveware.passwordmaker.Account;
-import org.daveware.passwordmaker.AccountComparator;
-import org.daveware.passwordmaker.SortOptions;
+import org.daveware.passwordmakerapp.AccountComparator;
+import org.daveware.passwordmakerapp.SortOptions;
 import org.junit.Test;
 
 /**
