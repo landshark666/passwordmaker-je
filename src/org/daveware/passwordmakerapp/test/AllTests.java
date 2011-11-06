@@ -15,15 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.daveware.passwordmaker.test;
+package org.daveware.passwordmakerapp.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ DatabaseTest.class, LeetTest.class, PasswordMakerTest.class,
-		RDFDatabaseReaderTest.class })
+@SuiteClasses({ TestAccountComparator.class })
 public class AllTests {
 
 }
