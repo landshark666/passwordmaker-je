@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.daveware.passwordmaker;
+package org.daveware.passwordmakerapp;
 
 import java.util.Comparator;
+
+import org.daveware.passwordmaker.Account;
 
 /**
  * Implements a comparator that can compare accounts based on sorting options.

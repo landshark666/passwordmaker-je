@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.daveware.passwordmaker;
+package org.daveware.passwordmakerapp;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
@@ -24,7 +24,7 @@ import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.daveware.passwordmaker.cli.CliMain;
-import org.daveware.passwordmaker.gui.GuiMain;
+import org.daveware.passwordmakerapp.gui.GuiMain;
 
 /**
  * Main entry point for the program. This will parse the command-line options and launch either

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.daveware.passwordmaker.gui;
+package org.daveware.passwordmakerapp.gui;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.daveware.passwordmaker.gui;
+package org.daveware.passwordmakerapp.gui;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,9 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.daveware.passwordmaker.Account;
-import org.daveware.passwordmaker.AccountComparator;
 import org.daveware.passwordmaker.BuildInfo;
-import org.daveware.passwordmaker.CmdLineSettings;
 import org.daveware.passwordmaker.Database;
 import org.daveware.passwordmaker.DatabaseListener;
 import org.daveware.passwordmaker.GlobalSettingKey;
@@ -34,8 +32,10 @@ import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.RDFDatabaseReader;
 import org.daveware.passwordmaker.RDFDatabaseWriter;
 import org.daveware.passwordmaker.SecureCharArray;
-import org.daveware.passwordmaker.SortOptions;
 import org.daveware.passwordmaker.Utilities;
+import org.daveware.passwordmakerapp.AccountComparator;
+import org.daveware.passwordmakerapp.CmdLineSettings;
+import org.daveware.passwordmakerapp.SortOptions;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
