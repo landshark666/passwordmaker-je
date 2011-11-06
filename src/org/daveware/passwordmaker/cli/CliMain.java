@@ -23,13 +23,12 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 
 import org.daveware.passwordmaker.Account;
-import org.daveware.passwordmaker.CmdLineSettings;
 import org.daveware.passwordmaker.Database;
-import org.daveware.passwordmaker.GlobalSettingKey;
 import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.RDFDatabaseReader;
 import org.daveware.passwordmaker.SecureCharArray;
 import org.daveware.passwordmaker.Utilities;
+import org.daveware.passwordmakerapp.CmdLineSettings;
 
 public class CliMain {
 
