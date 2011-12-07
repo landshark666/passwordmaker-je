@@ -33,11 +33,11 @@ public class AccountTreeLabelProvider implements ILabelProvider {
 	
 	public void loadImages() {
 		if(iconFolder==null)
-			iconFolder = SWTResourceManager.getImage(AccountTreeLabelProvider.class, "/org/daveware/passwordmaker/icons/folder.png");
+			iconFolder = SWTResourceManager.getImage(AccountTreeLabelProvider.class, "/org/daveware/passwordmakerapp/icons/folder.png");
 		if(iconKey==null)
-			iconKey = SWTResourceManager.getImage(AccountTreeLabelProvider.class, "/org/daveware/passwordmaker/icons/key.png");
+			iconKey = SWTResourceManager.getImage(AccountTreeLabelProvider.class, "/org/daveware/passwordmakerapp/icons/key.png");
 		if(iconKeyNext==null)
-			iconKeyNext = SWTResourceManager.getImage(AccountTreeLabelProvider.class, "/org/daveware/passwordmaker/icons/key_next.png");
+			iconKeyNext = SWTResourceManager.getImage(AccountTreeLabelProvider.class, "/org/daveware/passwordmakerapp/icons/key_next.png");
 	}
 
 	@Override

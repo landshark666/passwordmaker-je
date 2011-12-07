@@ -177,8 +177,6 @@ public class GuiMain implements DatabaseListener {
     private boolean showPassword = true;
 
     private boolean closeAfterTimer = false;
-    private MenuItem menuItem;
-
     
     public GuiMain(CmdLineSettings c) {
         cmdLineSettings = c;
@@ -331,10 +329,10 @@ public class GuiMain implements DatabaseListener {
             
         });
         
-        searchImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/magglass.png");
-        cancelImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/cancel.png");
-        eyeImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye.png");
-        eyeClosedImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye_closed.png");
+        searchImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/magglass.png");
+        cancelImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/cancel.png");
+        eyeImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye.png");
+        eyeClosedImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye_closed.png");
 
         shlPasswordMaker.setMinimumSize(new Point(855, 345));
         shlPasswordMaker.setSize(855, 345);
@@ -371,7 +369,7 @@ public class GuiMain implements DatabaseListener {
         	}
         });
         filterIcon.setBackground(SWTResourceManager.getColor(SWT.COLOR_LIST_BACKGROUND));
-        filterIcon.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/magglass.png"));
+        filterIcon.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/magglass.png"));
         filterIcon.setBounds(187, 1, 22, 20);
         filterIcon.setText("");
         
@@ -507,7 +505,7 @@ public class GuiMain implements DatabaseListener {
         gd_btnShowPassword.widthHint = 20;
         gd_btnShowPassword.heightHint = 17;
         btnShowPassword.setLayoutData(gd_btnShowPassword);
-        btnShowPassword.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/eye.png"));
+        btnShowPassword.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye.png"));
         
         Canvas outputCanvas = new Canvas(grpInput, SWT.BORDER);
         outputCanvas.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -595,7 +593,7 @@ public class GuiMain implements DatabaseListener {
                 onNewAccountSelected();
             }
         });
-        menuItemNewAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/key_add.png"));
+        menuItemNewAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/key_add.png"));
         menuItemNewAccount.setText("&New Account");
         
         menuItemEditAccount = new MenuItem(menu, SWT.NONE);
@@ -616,7 +614,7 @@ public class GuiMain implements DatabaseListener {
                 onNewGroupSelected();
             }
         });
-        menuItemNewGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/folder_add.png"));
+        menuItemNewGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/folder_add.png"));
         menuItemNewGroup.setText("New Group");
         
         menuItemEditGroup = new MenuItem(menu, SWT.NONE);
@@ -628,10 +626,10 @@ public class GuiMain implements DatabaseListener {
         });
         menuItemEditGroup.setText("Edit Group");
         
-        menuItem = new MenuItem(menu, SWT.SEPARATOR);
+        MenuItem menuItem = new MenuItem(menu, SWT.SEPARATOR);
         
         menuItemSort = new MenuItem(menu, SWT.NONE);
-        menuItemSort.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/sort_ascend.png"));
+        menuItemSort.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/sort_ascend.png"));
         menuItemSort.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
@@ -649,7 +647,7 @@ public class GuiMain implements DatabaseListener {
                 onDeleteAccount();
             }
         });
-        menuItemDeleteAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/key_delete.png"));
+        menuItemDeleteAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/key_delete.png"));
         menuItemDeleteAccount.setText("&Delete Account");
         
         menuItemDeleteGroup = new MenuItem(menu, SWT.NONE);
@@ -659,7 +657,7 @@ public class GuiMain implements DatabaseListener {
                 onDeleteAccount();
             }
         });
-        menuItemDeleteGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmaker/icons/folder_delete.png"));
+        menuItemDeleteGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/folder_delete.png"));
         menuItemDeleteGroup.setText("Delete Group");
         
         menu_1 = new Menu(shlPasswordMaker, SWT.BAR);

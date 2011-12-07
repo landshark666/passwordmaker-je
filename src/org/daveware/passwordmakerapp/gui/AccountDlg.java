@@ -329,7 +329,7 @@ public class AccountDlg {
 		        onOkSelected();
 		    }
 		});
-		btnOk.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
+		btnOk.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmakerapp/icons/check.png"));
 		FormData fd_btnOk = new FormData();
 		fd_btnOk.height = 32;
 		//fd_btnok.top = new FormAttachment(0, 417);
@@ -347,7 +347,7 @@ public class AccountDlg {
 		        onCancelSelected();
 		    }
 		});
-		btnCancel.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
+		btnCancel.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmakerapp/icons/cancel.png"));
 		FormData fd_btnCancel = new FormData();
 		fd_btnCancel.height = 32;
 		fd_btnCancel.top = new FormAttachment(btnOk, 0, SWT.TOP);
@@ -399,7 +399,7 @@ public class AccountDlg {
 		textNotes.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		tbtmUrl = new CTabItem(tabFolder, SWT.NONE);
-		tbtmUrl.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmaker/icons/world_link.png"));
+		tbtmUrl.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmakerapp/icons/world_link.png"));
 		tbtmUrl.setText("URLs");
 		
 		compositeUrls = new Composite(tabFolder, SWT.NONE);
@@ -495,7 +495,7 @@ public class AccountDlg {
 		btnDeletePattern.setText("&Delete Pattern");
 		
 		tbtmExtended = new CTabItem(tabFolder, SWT.NONE);
-		tbtmExtended.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmaker/icons/small_lock.png"));
+		tbtmExtended.setImage(SWTResourceManager.getImage(AccountDlg.class, "/org/daveware/passwordmakerapp/icons/small_lock.png"));
 		tbtmExtended.setText("Extended");
 		
 		Composite composite_2 = new Composite(tabFolder, SWT.NONE);
