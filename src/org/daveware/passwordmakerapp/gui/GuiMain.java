@@ -1277,20 +1277,18 @@ public class GuiMain implements DatabaseListener {
         SecureCharArray mpw = new SecureCharArray(editMP.getText());
         try {
             dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
-        } finally {
-            mpw.erase();
-            mpw = null;
-        }
             
-        // A copy of the account is returned if "ok" is clicked.
-        newAccount = dlg.open();
-        if(newAccount!=null) {
-            try {
+            // A copy of the account is returned if "ok" is clicked.
+            newAccount = dlg.open();
+            if(newAccount!=null) {
                 newAccount.setId(Account.createId(newAccount));
                 db.addAccount(parentAccount, newAccount);
-            } catch(Exception e) {
+            } 
+        } catch(Exception e) {
                 MBox.showError(shlPasswordMaker, "While creating the new account, an error occurred. You should save your work to a new file and restart.\n" + e.getMessage());
-            }
+        } finally {
+                mpw.erase();
+                mpw = null;
         }
     }
     
