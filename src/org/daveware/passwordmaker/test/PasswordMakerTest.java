@@ -30,6 +30,7 @@ import org.daveware.passwordmaker.LeetLevel;
 import org.daveware.passwordmaker.LeetType;
 import org.daveware.passwordmaker.PasswordMaker;
 import org.daveware.passwordmaker.SecureCharArray;
+import org.daveware.passwordmaker.Account.UrlComponents;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -54,6 +55,21 @@ public class PasswordMakerTest {
             mpw = pw;
             expectedOutput = expected;
         }
+        
+        @Override
+        public String toString() {
+        	StringBuilder retVal = new StringBuilder();
+        	retVal.append('(');
+        	retVal.append(account.getAlgorithm().toString());
+        	retVal.append(", HMAC=").append(account.isHmac());
+        	retVal.append(", user=").append(account.getUsername());
+        	retVal.append(", url=").append(account.getUrl());
+        	retVal.append(" leetlevel=" + account.getLeetLevel());
+        	if ( ! account.getUrlComponents().isEmpty() )
+        		retVal.append(" UrlComponents=").append(account.getUrlComponents());
+        	retVal.append(')');
+        	return retVal.toString();
+        }
     };
 
     // public Account(String name, String desc, String url, String username, AlgorithmType algorithm, boolean hmac,
@@ -61,7 +77,17 @@ public class PasswordMakerTest {
     //                LeetLevel leetLevel, String modifier, String prefix, String suffix,
     //                boolean sha256Bug)
             
-    static PWTest [] tests = {
+    private static PWTest urlComponentTest( String expected, String url, UrlComponents ... components) {
+    	Account acc = new Account("Yummy Humans", "", url, "tyrannosaurus@iwishiwasnotextinct.com", 
+    			AlgorithmType.MD5, false, true, 12, CharacterSets.ALPHANUMERIC, 
+    			LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, "");
+    	for ( UrlComponents urlCom : components ) {
+    		acc.addUrlComponent(urlCom);
+    	}
+    	return new PWTest( acc, "password", expected);
+    }
+    
+    private static PWTest [] tests = {
 
         // Default account, MD5 length=8
         new PWTest(new Account("Yummy Humans", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com"), "123abc!@#/\\'\"", "B}ZR0.@e"),
@@ -164,6 +190,12 @@ public class PasswordMakerTest {
         new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.RIPEMD160, true, true, 12, CharacterSets.BASE_93_SET, LeetType.BOTH, LeetLevel.LEVEL8, "", "", "", false, ""), "123abc!@#/\\'\"", "{}:(&*\\|>\"/_"),
         new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.RIPEMD160, true, true, 12, CharacterSets.BASE_93_SET, LeetType.BOTH, LeetLevel.LEVEL9, "", "", "", false, ""), "123abc!@#/\\'\"", "&|_|8|>|__||"),
     
+        // Test Url components
+        urlComponentTest("C4jcyJU3OITs", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Domain),
+        urlComponentTest("EkxyAhqWRdNs", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Domain, UrlComponents.Subdomain),
+        urlComponentTest("FlEkcwvpDedl", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Domain, UrlComponents.Subdomain, UrlComponents.PortPathAnchorQuery),
+        urlComponentTest("D9nvoh1yCroN", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Protocol, UrlComponents.Domain, UrlComponents.Subdomain, UrlComponents.PortPathAnchorQuery),
+        urlComponentTest("CFMeyEkYXHIo", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Domain, UrlComponents.PortPathAnchorQuery),
     };
     
     public PasswordMakerTest() {
@@ -257,8 +289,7 @@ public class PasswordMakerTest {
                 
             }
             else {
-                System.out.println("Test" + testNum + "(" + account.getAlgorithm().toString() + ", HMAC=" + 
-                        account.isHmac() + ", user=" + account.getUsername() + ", url=" + account.getUrl() + " leetlevel=" + account.getLeetLevel() + ") failed");
+                System.out.println("Test" + testNum + test + " failed");
                 System.out.println("Expected: " + test.expectedOutput);
                 System.out.println("Received: " + new String(output.getData()));
                 failCount++;

@@ -19,7 +19,10 @@ package org.daveware.passwordmaker;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Represents an account.  This object also functions as a parent account for
@@ -28,6 +31,11 @@ import java.util.Random;
  * @author Dave Marotti
  */
 public final class Account implements Comparable<Account> {
+	
+	public enum UrlComponents {
+		Protocol, Subdomain, Domain, PortPathAnchorQuery
+	}
+	
     public static String ROOT_ACCOUNT_URI = "http://passwordmaker.mozdev.org/accounts";
     public static String DEFAULT_ACCOUNT_URI = "http://passwordmaker.mozdev.org/defaults";
     
@@ -50,6 +58,8 @@ public final class Account implements Comparable<Account> {
     private boolean       sha256Bug         = false;
     private String        id                = "";
     private boolean       autoPop           = false;
+    private EnumSet<UrlComponents> urlComponents = defaultUrlComponents();
+    
     private ArrayList<AccountPatternData> patterns = new ArrayList<AccountPatternData>();
     private ArrayList<Account> children     = new ArrayList<Account>();
     
@@ -147,30 +157,30 @@ public final class Account implements Comparable<Account> {
         }
     }
     
-    /**
-     * Alternate constructor that allows the id to also be supplied. (Still no autopop).
-     */
-    public Account(String name, String desc, String url, String username, AlgorithmType algorithm, boolean hmac,
-            boolean trim, int length, String characterSet, LeetType leetType,
-            LeetLevel leetLevel, String modifier, String prefix, String suffix,
-            boolean sha256Bug, String id) {
-        this.name = name;
-        this.desc = desc;
-        this.url = url;
-        this.username = username;
-        this.algorithm = algorithm;
-        this.hmac = hmac;
-        this.trim = trim;
-        this.length = length;
-        this.characterSet = characterSet;
-        this.leetType = leetType;
-        this.leetLevel = leetLevel;
-        this.modifier = modifier;
-        this.prefix = prefix;
-        this.suffix = suffix;
-        this.sha256Bug = sha256Bug;
-        this.id = id;
-    }
+	    /**
+	     * Alternate constructor that allows the id to also be supplied. (Still no autopop).
+	     */
+	    public Account(String name, String desc, String url, String username, AlgorithmType algorithm, boolean hmac,
+	            boolean trim, int length, String characterSet, LeetType leetType,
+	            LeetLevel leetLevel, String modifier, String prefix, String suffix,
+	            boolean sha256Bug, String id) {
+	        this.name = name;
+	        this.desc = desc;
+	        this.url = url;
+	        this.username = username;
+	        this.algorithm = algorithm;
+	        this.hmac = hmac;
+	        this.trim = trim;
+	        this.length = length;
+	        this.characterSet = characterSet;
+	        this.leetType = leetType;
+	        this.leetLevel = leetLevel;
+	        this.modifier = modifier;
+	        this.prefix = prefix;
+	        this.suffix = suffix;
+	        this.sha256Bug = sha256Bug;
+	        this.id = id;
+	    }
     
     /**
      * Creates an ID from a string. 
@@ -201,6 +211,10 @@ public final class Account implements Comparable<Account> {
         return Account.createId(acc.getName() + acc.getDesc() + (new Random()).nextLong() + Runtime.getRuntime().freeMemory());
     }
     
+	private static EnumSet<UrlComponents> defaultUrlComponents() {
+		return EnumSet.noneOf(UrlComponents.class);
+	}
+	
     public String getName() {
         return name;
     }
@@ -444,6 +458,37 @@ public final class Account implements Comparable<Account> {
     public void setId(String id) {
         this.id = id;
     }
+    
+    /**
+     * Clears the UrlComponents used with this account
+     */
+    public final void clearUrlComponents() {
+    	this.urlComponents.clear();
+    }
+    
+    /**
+     * @param urlComponent - Add a component of the url to be used as the input text for the generated password
+     */
+    public final void addUrlComponent(UrlComponents urlComponent) {
+    	this.urlComponents.add(urlComponent);
+    }
+    
+    /**
+     * @param urlComponents - the Components to use of the url as the input text for the generated password
+     */
+    public final void setUrlComponents(Set<UrlComponents> urlComponents) {
+    	this.urlComponents.clear();
+    	this.urlComponents.addAll(urlComponents);
+    }
+    
+    /**
+     * If the urlComponents field is empty then the entire getUrl field will be used. 
+     * This set is unmodifiable.  Use the helper functions to set or modify the set.
+     * @return the url components specified for this account (may be empty)
+     */
+	public final Set<UrlComponents> getUrlComponents() {
+		return Collections.unmodifiableSet(urlComponents);
+	}
     
     /**
      * Gets a list of the child accounts. This list is modifiable.
