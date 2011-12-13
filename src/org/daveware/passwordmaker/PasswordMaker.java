@@ -19,16 +19,21 @@ package org.daveware.passwordmaker;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.daveware.passwordmaker.Account.UrlComponents;
 
 /**
  * This class is used to generate passwords from a master password and an account.
  * @author Dave Marotti
  */
 public class PasswordMaker {
-
+	private static Pattern urlRegex = Pattern.compile("([^:\\/\\/]*:\\/\\/)?([^:\\/]*)([^#]*)");
     /**
      * Maps an array of characters to another character set.
      * 
@@ -237,14 +242,61 @@ public class PasswordMaker {
     }
     
     
+	public final String getModifiedInputText(final String inputText, final Account account) {
+		final Set<UrlComponents> uriComponents = account.getUrlComponents();
+		if (uriComponents.isEmpty())
+			return inputText; 
+		Matcher matcher = urlRegex.matcher(inputText);
+		if (!matcher.matches())
+			return inputText;
+		String protocol = matcher.group(1);
+		String domainText = matcher.group(2);
+		String portPath = matcher.group(3);
+		if ( protocol == null ) protocol = "";
+		if ( domainText == null ) domainText = "";
+		if ( portPath == null ) portPath = "";
+		
+		StringBuilder retVal = new StringBuilder(inputText.length());
+		if (uriComponents.contains(UrlComponents.Protocol) && protocol.length() > 0) {
+			retVal.append(protocol);
+		}
+		if (domainText != null) {
+			final String subDomain;
+			int dnDot = domainText.lastIndexOf('.');
+			dnDot = domainText.lastIndexOf('.', dnDot - 1);
+			if (dnDot != -1) {
+				subDomain = domainText.substring(0, dnDot);
+				domainText = domainText.substring(dnDot + 1);
+			} else {
+				subDomain = "";
+			}
+			final boolean hasSubDomain = uriComponents
+					.contains(UrlComponents.Subdomain) && dnDot != -1;
+			if (hasSubDomain) {
+				retVal.append(subDomain);
+			}
+			if (uriComponents.contains(UrlComponents.Domain)) {
+				if (hasSubDomain)
+					retVal.append('.');
+				retVal.append(domainText);
+			}
+		}
+		if (uriComponents.contains(UrlComponents.PortPathAnchorQuery)
+				&& portPath.length() > 0) {
+			retVal.append(portPath);
+		}
+		return retVal.toString();
+	}
+    
     /**
      * Generates a hash of the master password with settings from the account.
      * @param masterPassword The password to use as a key for the various algorithms.
      * @param account The account with the specific settings for the hash.
+     * @param inputText The text to use as the input into the password maker algorithm
      * @return A SecureCharArray with the hashed data.
      * @throws Exception if something bad happened.
      */
-    public SecureCharArray makePassword(SecureCharArray masterPassword, Account account)
+    public SecureCharArray makePassword(SecureCharArray masterPassword, Account account, final String inputText)
             throws Exception
     {
         LeetLevel leetLevel = account.getLeetLevel();
@@ -257,7 +309,7 @@ public class PasswordMaker {
             if(account.getCharacterSet().length() < 2)
                 throw new Exception("Account contains a character set that is too short");
 
-            data = new SecureCharArray(account.getUrl() + account.getUsername() + account.getModifier());
+            data = new SecureCharArray(getModifiedInputText(inputText, account) + account.getUsername() + account.getModifier() );
 
             // Use leet before hashing
             if(account.getLeetType()==LeetType.BEFORE || account.getLeetType()==LeetType.BOTH) {
@@ -314,6 +366,18 @@ public class PasswordMaker {
         return output;
     }
     
+    /**
+     * Generates a hash of the master password with settings from the account.
+     * @param masterPassword The password to use as a key for the various algorithms.
+     * @param account The account with the specific settings for the hash. Uses account.getUrl() as the inputText
+     * @return A SecureCharArray with the hashed data.
+     * @throws Exception if something bad happened.
+     */
+    public SecureCharArray makePassword(SecureCharArray masterPassword, Account account)
+            throws Exception
+    {
+    	return makePassword(masterPassword, account, account.getUrl());
+    }
     /**
      * Intermediate step of generating a password. Performs constant hashing until
      * the resulting hash is long enough.

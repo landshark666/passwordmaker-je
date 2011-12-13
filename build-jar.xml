@@ -73,9 +73,6 @@ Built-At: ${build-info.current-time}</echo>
                 <attribute name="Implementation-Version" value="${version-number}" />
             </manifest>
             <fileset file="dist/build-info.properties" />
-            <!-- Uncomment if you want to include the BC classes directly in this jar
-        	<zipfileset src="lib/bcprov-jdk16-146.jar" />
-        	-->
             <fileset dir="bin" includes="org/daveware/passwordmaker/**"/>
         </jar>	
 	</target>
