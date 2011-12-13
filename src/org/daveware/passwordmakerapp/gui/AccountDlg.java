@@ -17,6 +17,8 @@
  */
 package org.daveware.passwordmakerapp.gui;
 
+import java.util.Set;
+
 import org.daveware.passwordmaker.Account;
 import org.daveware.passwordmaker.AccountPatternData;
 import org.daveware.passwordmaker.AlgorithmType;
@@ -945,10 +947,15 @@ public class AccountDlg {
         account.setSuffix(textSuffix.getText());
         
         if(account.isDefault()) {
-            account.setUseUrlProtocol(btnProtocol.getSelection());
-            account.setUseUrlSubdomains(btnSubdomains.getSelection());
-            account.setUseUrlDomain(btnDomain.getSelection());
-            account.setUseUrlPort(btnPort.getSelection());
+            account.clearUrlComponents();
+            if(btnProtocol.getSelection())
+                account.addUrlComponent(Account.UrlComponents.Protocol);
+            if(btnSubdomains.getSelection())
+                account.addUrlComponent(Account.UrlComponents.Subdomain);
+            if(btnDomain.getSelection())
+                account.addUrlComponent(Account.UrlComponents.Domain);
+            if(btnPort.getSelection())
+                account.addUrlComponent(Account.UrlComponents.PortPathAnchorQuery);
         }
         
         return true;
@@ -1006,10 +1013,11 @@ public class AccountDlg {
     	textSuffix.setText(account.getSuffix());
     	
     	if(account.isDefault()) {
-    	    btnProtocol.setSelection(account.getUseUrlProtocol());
-    	    btnSubdomains.setSelection(account.getUseUrlSubdomains());
-    	    btnDomain.setSelection(account.getUseUrlDomain());
-    	    btnPort.setSelection(account.getUseUrlPort());
+    	    Set<Account.UrlComponents> urlComponents = account.getUrlComponents();
+    	    btnProtocol.setSelection(urlComponents.contains(Account.UrlComponents.Protocol));
+    	    btnSubdomains.setSelection(urlComponents.contains(Account.UrlComponents.Subdomain));
+    	    btnDomain.setSelection(urlComponents.contains(Account.UrlComponents.Domain));
+    	    btnPort.setSelection(urlComponents.contains(Account.UrlComponents.PortPathAnchorQuery));
     	}
     }
 

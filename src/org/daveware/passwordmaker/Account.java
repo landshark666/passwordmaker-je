@@ -155,6 +155,10 @@ public final class Account implements Comparable<Account> {
         for(AccountPatternData data : a.getPatterns()) {
             this.patterns.add(new AccountPatternData(data));
         }
+        
+        // The documentation says EnumSet.copyOf() will fail on empty sets.
+        if(a.urlComponents.isEmpty()==false)
+            this.urlComponents = EnumSet.copyOf(a.urlComponents);
     }
     
 	    /**

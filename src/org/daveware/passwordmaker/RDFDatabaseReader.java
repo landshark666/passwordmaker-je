@@ -256,10 +256,15 @@ public class RDFDatabaseReader implements DatabaseReader {
 
             // Read the URL extraction specifiers
             if(account.isDefault()) {
-                account.setUseUrlProtocol(element.getAttribute("NS1:protocolCB").trim().compareToIgnoreCase("true")==0 ? true : false);
-                account.setUseUrlSubdomains(element.getAttribute("NS1:subdomainCB").trim().compareToIgnoreCase("true")==0 ? true : false);
-                account.setUseUrlDomain(element.getAttribute("NS1:domainCB").trim().compareToIgnoreCase("true")==0 ? true : false);
-                account.setUseUrlPort(element.getAttribute("NS1:pathCB").trim().compareToIgnoreCase("true")==0 ? true : false);
+                account.clearUrlComponents();
+                if(element.getAttribute("NS1:protocolCB").trim().compareToIgnoreCase("true")==0)
+                    account.addUrlComponent(Account.UrlComponents.Protocol);
+                if(element.getAttribute("NS1:subdomainCB").trim().compareToIgnoreCase("true")==0)
+                    account.addUrlComponent(Account.UrlComponents.Subdomain);
+                if(element.getAttribute("NS1:domainCB").trim().compareToIgnoreCase("true")==0)
+                    account.addUrlComponent(Account.UrlComponents.Domain);
+                if(element.getAttribute("NS1:pathCB").trim().compareToIgnoreCase("true")==0)
+                    account.addUrlComponent(Account.UrlComponents.PortPathAnchorQuery);
             }
             else {
                 // Otherwise use the URL stored with the node
