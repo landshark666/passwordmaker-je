@@ -244,8 +244,12 @@ public class PasswordMaker {
     
 	public final String getModifiedInputText(final String inputText, final Account account) {
 		final Set<UrlComponents> uriComponents = account.getUrlComponents();
-		if (uriComponents.isEmpty())
-			return ""; 
+		if (uriComponents.isEmpty()) {
+		    if(account.isDefault())
+		        return "";
+		    else
+		        return account.getUrl();
+		}
 		Matcher matcher = urlRegex.matcher(inputText);
 		if (!matcher.matches())
 			return inputText;
