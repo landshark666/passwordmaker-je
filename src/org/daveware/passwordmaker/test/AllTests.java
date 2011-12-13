@@ -17,13 +17,16 @@
  */
 package org.daveware.passwordmaker.test;
 
+import org.daveware.passwordmaker.Account;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ DatabaseTest.class, LeetTest.class, PasswordMakerTest.class,
-		RDFDatabaseReaderTest.class })
+		RDFDatabaseReaderTest.class /*, Account.class */ })
 public class AllTests {
-
+    // Can't figure out how the hell to get this to work with Account. The Account
+    // class has multiple structures which causes JUnit (or eclipse?) to throw
+    // an error.
 }
