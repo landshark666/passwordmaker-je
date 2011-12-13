@@ -138,7 +138,19 @@ public class RDFDatabaseWriter implements DatabaseWriter {
     		writer.writeAttribute("NS1:prefix", account.getPrefix());
     		writer.writeAttribute("NS1:suffix", account.getSuffix());
     		writer.writeAttribute("NS1:autoPopulate", "false"); // TODO: make this a setting allowed in accounts
-    		writer.writeAttribute("NS1:urlToUse", account.getUrl());
+    		
+    		// The default account contains specifiers for extracting pieces of an URL
+    		if(account.isDefault()) {
+                writer.writeAttribute("NS1:protocolCB", account.getUseUrlProtocol() ? "true" : "false");
+                writer.writeAttribute("NS1:subdomainCB", account.getUseUrlSubdomains() ? "true" : "false");
+                writer.writeAttribute("NS1:domainCB", account.getUseUrlDomain() ? "true" : "false");
+                writer.writeAttribute("NS1:pathCB", account.getUseUrlPort() ? "true" : "false");
+    		}
+    		else {
+    		    // The non-default accounts store the URL
+    		    writer.writeAttribute("NS1:urlToUse", account.getUrl());
+    		}
+    		
     		int patternCount = 0;
     		for(AccountPatternData data : account.getPatterns()) {
     			writer.writeAttribute("NS1:pattern" + patternCount, data.getPattern());
