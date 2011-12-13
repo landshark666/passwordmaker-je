@@ -21,6 +21,10 @@ import static org.junit.Assert.fail;
 
 import java.security.Security;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
+
+import junit.framework.Assert;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.daveware.passwordmaker.Account;
@@ -229,6 +233,24 @@ public class PasswordMakerTest {
                 fail(input[i] + " failed, expected " + expected[i] + " but got " + strength);
             }
         }
+    }
+    
+    @Test
+    public void testGetModifiedInputText() {
+        PasswordMaker pwm = new PasswordMaker();
+        
+        Account a = new Account();
+        a.clearUrlComponents();
+        Assert.assertEquals("", pwm.getModifiedInputText("http://user:pass@a.domain.is.here.com:8080/somePage.html?param=value", a));
+        a.setUrlComponents(EnumSet.of(UrlComponents.Protocol, UrlComponents.Subdomain, UrlComponents.Domain, UrlComponents.PortPathAnchorQuery));
+        Assert.assertEquals("http://a.domain.is.here.com:8080/somePage.html?param=value", pwm.getModifiedInputText("http://a.domain.is.here.com:8080/somePage.html?param=value", a));
+        a.setUrlComponents(EnumSet.of(UrlComponents.Domain));
+        Assert.assertEquals("here.com", pwm.getModifiedInputText("http://a.domain.is.here.com:8080/somePage.html?param=value", a));
+        a.setUrlComponents(EnumSet.of(UrlComponents.Subdomain, UrlComponents.Domain));
+        Assert.assertEquals("a.domain.is.here.com", pwm.getModifiedInputText("http://a.domain.is.here.com:8080/somePage.html?param=value", a));
+        a.setUrlComponents(EnumSet.of(UrlComponents.Subdomain, UrlComponents.Domain, UrlComponents.PortPathAnchorQuery));
+        Assert.assertEquals("a.domain.is.here.com:8080/somePage.html?param=value", pwm.getModifiedInputText("http://a.domain.is.here.com:8080/somePage.html?param=value", a));
+        Assert.assertEquals("a.domain.is.here.com:/somePage.html?param=value", pwm.getModifiedInputText("http://a.domain.is.here.com/somePage.html?param=value", a));
     }
        
     
