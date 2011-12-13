@@ -126,6 +126,13 @@ public class AccountDlg {
     private Composite composite_1;
     private Label lblGeneratedPassword;
     private Button btnShowPassword;
+    private CTabItem tbtmDefaultAccountBehavior;
+    private Group grpUrlComponents;
+    private Button btnProtocol;
+    private Button btnSubdomains;
+    private Composite composite_3;
+    private Button btnDomain;
+    private Button btnPort;
     //-------- End RESOURCES THAT MUST BE DISPOSED OF -----------------------------------
 
 	/**
@@ -262,6 +269,32 @@ public class AccountDlg {
 		createContents();
 		
 		tabFolder.setSelection(0);
+		
+		tbtmDefaultAccountBehavior = new CTabItem(tabFolder, SWT.NONE);
+		tbtmDefaultAccountBehavior.setText("Default Account Behavior");
+		
+		grpUrlComponents = new Group(tabFolder, SWT.NONE);
+		grpUrlComponents.setText("URL Components");
+		tbtmDefaultAccountBehavior.setControl(grpUrlComponents);
+		grpUrlComponents.setLayout(new GridLayout(1, false));
+		
+		composite_3 = new Composite(grpUrlComponents, SWT.NONE);
+		composite_3.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		RowLayout rl_composite_3 = new RowLayout(SWT.HORIZONTAL);
+		rl_composite_3.spacing = 10;
+		composite_3.setLayout(rl_composite_3);
+		
+		btnProtocol = new Button(composite_3, SWT.CHECK);
+		btnProtocol.setText("Protocol");
+		
+		btnSubdomains = new Button(composite_3, SWT.CHECK);
+		btnSubdomains.setText("Subdomain(s)");
+		
+		btnDomain = new Button(composite_3, SWT.CHECK);
+		btnDomain.setText("Domain");
+		
+		btnPort = new Button(composite_3, SWT.CHECK);
+		btnPort.setText("Port, path, anchor, query parameters");
 		populateGuiFromAccount();
 		setupPatternTable();
 		setupDecorators();
@@ -281,6 +314,11 @@ public class AccountDlg {
 		    
 		    tbtmExtended.dispose();
 		    tbtmExtended = null;
+		}
+		
+		if(account.isDefault()==false) {
+		    tbtmDefaultAccountBehavior.dispose();
+		    tbtmDefaultAccountBehavior = null;
 		}
 		
 		shlAccountSettings.pack();
@@ -906,6 +944,13 @@ public class AccountDlg {
         account.setPrefix(textPrefix.getText());
         account.setSuffix(textSuffix.getText());
         
+        if(account.isDefault()) {
+            account.setUseUrlProtocol(btnProtocol.getSelection());
+            account.setUseUrlSubdomains(btnSubdomains.getSelection());
+            account.setUseUrlDomain(btnDomain.getSelection());
+            account.setUseUrlPort(btnPort.getSelection());
+        }
+        
         return true;
     }
 
@@ -959,6 +1004,13 @@ public class AccountDlg {
     	textModifier.setText(account.getModifier());
     	textPrefix.setText(account.getPrefix());
     	textSuffix.setText(account.getSuffix());
+    	
+    	if(account.isDefault()) {
+    	    btnProtocol.setSelection(account.getUseUrlProtocol());
+    	    btnSubdomains.setSelection(account.getUseUrlSubdomains());
+    	    btnDomain.setSelection(account.getUseUrlDomain());
+    	    btnPort.setSelection(account.getUseUrlPort());
+    	}
     }
 
     void selectPattern(AccountPatternData data) {
