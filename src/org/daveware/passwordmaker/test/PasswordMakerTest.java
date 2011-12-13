@@ -82,13 +82,22 @@ public class PasswordMakerTest {
     //                boolean sha256Bug)
             
     private static PWTest urlComponentTest( String expected, String url, UrlComponents ... components) {
-    	Account acc = new Account("Yummy Humans", "", url, "tyrannosaurus@iwishiwasnotextinct.com", 
-    			AlgorithmType.MD5, false, true, 12, CharacterSets.ALPHANUMERIC, 
-    			LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, "");
-    	for ( UrlComponents urlCom : components ) {
-    		acc.addUrlComponent(urlCom);
-    	}
-    	return new PWTest( acc, "password", expected);
+        Account acc = new Account("Yummy Humans", "", url, "tyrannosaurus@iwishiwasnotextinct.com", 
+                AlgorithmType.MD5, false, true, 12, CharacterSets.ALPHANUMERIC, 
+                LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, "");
+        for ( UrlComponents urlCom : components ) {
+            acc.addUrlComponent(urlCom);
+        }
+        return new PWTest( acc, "password", expected);
+    }   
+    
+    // same as above but with an empty UrlComponent set
+    private static PWTest urlComponentTest( String expected, String url) {
+        Account acc = new Account("Yummy Humans", "", url, "tyrannosaurus@iwishiwasnotextinct.com", 
+                AlgorithmType.MD5, false, true, 12, CharacterSets.ALPHANUMERIC, 
+                LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, "");
+        acc.clearUrlComponents();
+        return new PWTest( acc, "password", expected);
     }
     
     private static PWTest [] tests = {
@@ -200,6 +209,9 @@ public class PasswordMakerTest {
         urlComponentTest("FlEkcwvpDedl", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Domain, UrlComponents.Subdomain, UrlComponents.PortPathAnchorQuery),
         urlComponentTest("D9nvoh1yCroN", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Protocol, UrlComponents.Domain, UrlComponents.Subdomain, UrlComponents.PortPathAnchorQuery),
         urlComponentTest("CFMeyEkYXHIo", "http://subdomain.yummyhumans.com/path/to?everything=true", UrlComponents.Domain, UrlComponents.PortPathAnchorQuery),
+        
+        // This fails right now, not sure why
+        urlComponentTest("BS0JNF8qbJVN", "http://www.google.com/ig"),
     };
     
     public PasswordMakerTest() {
