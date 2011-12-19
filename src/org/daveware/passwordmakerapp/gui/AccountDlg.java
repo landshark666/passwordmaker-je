@@ -322,6 +322,10 @@ public class AccountDlg {
 		    tbtmDefaultAccountBehavior.dispose();
 		    tbtmDefaultAccountBehavior = null;
 		}
+		else {
+            textName.setEditable(false);
+            textNotes.setEditable(false);
+		}
 		
 		shlAccountSettings.pack();
 		shlAccountSettings.open();
