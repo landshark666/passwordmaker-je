@@ -222,7 +222,7 @@ public class PatternDlg extends Dialog {
             }
         });
         button.setText("OK");
-        button.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
+        button.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmakerapp/icons/check.png"));
         FormData fd_button = new FormData();
         fd_button.bottom = new FormAttachment(100, -8);
         fd_button.top = new FormAttachment(grpPatternContains, 8);
@@ -238,7 +238,7 @@ public class PatternDlg extends Dialog {
             }
         });
         button_1.setText("Cancel");
-        button_1.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
+        button_1.setImage(SWTResourceManager.getImage(PatternDlg.class, "/org/daveware/passwordmakerapp/icons/cancel.png"));
         FormData fd_button_1 = new FormData();
         fd_button_1.bottom = new FormAttachment(100, -8);
         fd_button_1.top = new FormAttachment(grpPatternContains, 8);
