@@ -216,9 +216,13 @@ public final class Account implements Comparable<Account> {
         throws Exception {
         return Account.createId(acc.getName() + acc.getDesc() + (new Random()).nextLong() + Runtime.getRuntime().freeMemory());
     }
-    
+
+    /**
+     * Gets the default set of UrlComponents (empty set).
+     * @return
+     */
 	private static EnumSet<UrlComponents> defaultUrlComponents() {
-		return EnumSet.noneOf(UrlComponents.class);
+	    return EnumSet.noneOf(UrlComponents.class);
 	}
 	
     public String getName() {
