@@ -1448,6 +1448,22 @@ public class GuiMain implements DatabaseListener {
      * @return true on success.
      */
     private boolean openFile() {
+        if(db!=null && db.isDirty()) {
+            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+            case SWT.YES:
+                if(saveFile()==false)
+                    return false;
+                break;
+                
+            case SWT.NO:
+                break;
+                
+            case SWT.CANCEL:
+                return false;
+            }
+        }
+
+        
         FileDialog fd = new FileDialog(shlPasswordMaker, SWT.OPEN);
         fd.setText("Open RDF File");
         fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
