@@ -17,9 +17,12 @@
  */
 package org.daveware.passwordmaker;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
+
+import org.daveware.passwordmaker.Account.UrlComponents;
 
 /**
  * Represents a database of accounts.
@@ -230,6 +233,7 @@ public class Database {
         defaultAccount.setName("Defaults");
         defaultAccount.setId(Account.DEFAULT_ACCOUNT_URI);
         defaultAccount.setDesc("Default settings for URLs not elsewhere in this list");
+        defaultAccount.setUrlComponents(EnumSet.of(UrlComponents.Domain));
         
         addAccount(rootAccount, defaultAccount);
     }
