@@ -116,7 +116,7 @@ public class GuiMain implements DatabaseListener {
     private Text editUsername;
     private Text editMP;
     private Text editCopySeconds;
-    private Text editUrl;
+    private Text editUrlSearch;
     private Canvas canvasOutput;
     private Display display;
     private Combo comboCopyBehavior;
@@ -144,7 +144,6 @@ public class GuiMain implements DatabaseListener {
     private MenuItem menuItemDeleteGroup;
     private MenuItem menuItemSave;
     private MenuItem menuItemSaveAs;
-    private Text textFilename;
     private ControlDecoration secondsDecoration;
     
     
@@ -172,11 +171,16 @@ public class GuiMain implements DatabaseListener {
     private Database db = null;
     private BuildInfo buildInfo = null;
     private SortOptions sortOptions = new SortOptions();
+    private boolean urlSearchEnabled = true;
     
     private boolean isFiltering = false;
     private boolean showPassword = true;
 
     private boolean closeAfterTimer = false;
+    private Text editInputUrl;
+    private Label lblInputUrl;
+    private Text editUrl;
+    private Label lblUrl_1;
     
     public GuiMain(CmdLineSettings c) {
         cmdLineSettings = c;
@@ -335,7 +339,7 @@ public class GuiMain implements DatabaseListener {
         eyeClosedImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye_closed.png");
 
         shlPasswordMaker.setMinimumSize(new Point(855, 345));
-        shlPasswordMaker.setSize(855, 345);
+        shlPasswordMaker.setSize(855, 412);
         setTitle();
 //        shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
         shlPasswordMaker.setLayout(new FormLayout());
@@ -416,23 +420,15 @@ public class GuiMain implements DatabaseListener {
         GridLayout gl_grpInput = new GridLayout(2, false);
         grpInput.setLayout(gl_grpInput);
         
-        Label lblDatabase = new Label(grpInput, SWT.NONE);
-        lblDatabase.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-        lblDatabase.setText("File:");
-        
-        textFilename = new Text(grpInput, SWT.BORDER);
-        textFilename.setEditable(false);
-        textFilename.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-        
         Label lblUrl = new Label(grpInput, SWT.NONE);
         lblUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblUrl.setText("URL Search:");
         
-        editUrl = new Text(grpInput, SWT.BORDER);
-        editUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        editUrl.addModifyListener(new ModifyListener() {
+        editUrlSearch = new Text(grpInput, SWT.BORDER);
+        editUrlSearch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        editUrlSearch.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent arg0) {
-        		onUrlModified(arg0);
+        		onUrlSearchModified(arg0);
         	}
         });
         
@@ -453,6 +449,27 @@ public class GuiMain implements DatabaseListener {
         editDesc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         editDesc.setEnabled(false);
         editDesc.setEditable(false);
+        
+        lblInputUrl = new Label(grpInput, SWT.NONE);
+        lblInputUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblInputUrl.setText("Input URL:");
+        
+        editInputUrl = new Text(grpInput, SWT.BORDER);
+        editInputUrl.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent arg0) {
+                regeneratePasswordAndDraw();
+            }
+        });
+        editInputUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        
+        lblUrl_1 = new Label(grpInput, SWT.NONE);
+        lblUrl_1.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblUrl_1.setText("URL:");
+        
+        editUrl = new Text(grpInput, SWT.BORDER);
+        editUrl.setEnabled(false);
+        editUrl.setEditable(false);
+        editUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         
         Label lblUsername = new Label(grpInput, SWT.RIGHT);
         lblUsername.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -764,11 +781,16 @@ public class GuiMain implements DatabaseListener {
      * Locates the current account based on information in the config.
      * @return 0 if found, else non-zero.
      */
-    public int findAccount() {
+    public int findAccountByUrl() {
+        // Url search gets disabled when manually setting the value of the editUrlSearch widget,
+        // otherwise it invokes this function
+        if(!urlSearchEnabled)
+            return 0;
+        
         int ret = 1;
 
         Account acc = null;
-        String matchUrl = editUrl.getText();
+        String matchUrl = editUrlSearch.getText();
         
         try {
             acc = db.findAccountByUrl(matchUrl);
@@ -777,6 +799,7 @@ public class GuiMain implements DatabaseListener {
             else
                 accountTreeViewer.setSelection(null);
             //selectAccount(acc);
+            ret = 0;
         }
         catch(Exception e) {
             MBox.showError(shlPasswordMaker, "Unable to locate account based on URL.\n" + e.getMessage());
@@ -824,9 +847,12 @@ public class GuiMain implements DatabaseListener {
                 Account tempAccount = new Account();
                 tempAccount.copySettings(selectedAccount);
                 tempAccount.setUsername(editUsername.getText());
+                tempAccount.setId(selectedAccount.getId());
+                tempAccount.setUrl(editUrl.getText());
                 
         		mpw = new SecureCharArray(editMP.getText());
-        		output = pwm.makePassword(mpw, tempAccount);
+        		
+                output = pwm.makePassword(mpw, tempAccount);
         	}
         	else {
         		output = new SecureCharArray();
@@ -899,7 +925,7 @@ public class GuiMain implements DatabaseListener {
      */
     private void loadFromCmdLineSettings() {
         if(cmdLineSettings.matchUrl!=null)
-        	editUrl.setText(cmdLineSettings.matchUrl);
+        	editUrlSearch.setText(cmdLineSettings.matchUrl);
         if(cmdLineSettings.inputFilename!=null) {
             openFile(cmdLineSettings.inputFilename);
         }
@@ -909,7 +935,7 @@ public class GuiMain implements DatabaseListener {
         
         // Only attempt an initial find if something was passed on the commandline
         if(cmdLineSettings.matchUrl!=null && cmdLineSettings.matchUrl.length()>0)
-            findAccount();
+            findAccountByUrl();
     }
 
     /**
@@ -950,7 +976,6 @@ public class GuiMain implements DatabaseListener {
         db = new Database();
         db.addDatabaseListener(this);
         accountTreeViewer.setInput(db);
-        textFilename.setText("");
     
         try {
             db.addDefaultAccount();
@@ -1413,8 +1438,8 @@ public class GuiMain implements DatabaseListener {
      * anything matching the current URL text.
      * @param arg0 Ignored, can be null.
      */
-    private void onUrlModified(ModifyEvent arg0) {
-    	findAccount();
+    private void onUrlSearchModified(ModifyEvent arg0) {
+    	findAccountByUrl();
     }
         
     
@@ -1454,7 +1479,6 @@ public class GuiMain implements DatabaseListener {
             
             // Widget setup
             accountTreeViewer.setInput(db);
-            textFilename.setText(filename);
             
             selectFirstAccount();
             setGuiFromGlobalSettings();
@@ -1493,6 +1517,8 @@ public class GuiMain implements DatabaseListener {
        
        
        try {
+           updateUrlFromInputUrl();
+           
            gc = new GC(passwordImage);
            gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
            gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
@@ -1564,7 +1590,7 @@ public class GuiMain implements DatabaseListener {
 
     /**
      * Opens up a dialog-box allowing the user to select a file to save to. This will invoke
-     * saveFile behind the scenes and update currentFilename/textFilename on success.
+     * saveFile behind the scenes and update currentFilename on success.
      * @return true on success.
      */
     private boolean saveFileAs() {
@@ -1584,13 +1610,11 @@ public class GuiMain implements DatabaseListener {
 
             
             if(saveFile()==true) {
-                textFilename.setText(currentFilename);
                 return true;
             }
             
             // it failed if we get here, restore the filename
             currentFilename = oldFilename;
-            textFilename.setText(currentFilename);
         }
         
         
@@ -1611,6 +1635,24 @@ public class GuiMain implements DatabaseListener {
             editAccount.setText(selectedAccount.getName());
             editDesc.setText(selectedAccount.getDesc());
             editUsername.setText(selectedAccount.getUsername());
+            
+            // When the default account is selected, the user can enter an URL to have
+            // the account settings applied against.
+            if(acc.isDefault()) {
+                editInputUrl.setEnabled(true);
+                lblInputUrl.setEnabled(true);
+                editInputUrl.setText("");
+                
+                urlSearchEnabled = false;
+                editUrlSearch.setText("");
+                urlSearchEnabled = true;
+            }
+            else {
+                editInputUrl.setEnabled(false);
+                lblInputUrl.setEnabled(false);
+                editUrl.setText(acc.getUrl());
+            }
+            
         }
         else {
             btnCopyToClipboard.setEnabled(false);
@@ -1628,6 +1670,22 @@ public class GuiMain implements DatabaseListener {
 	    else
 	        accountTreeViewer.setSelection(null);
 	}
+
+    /**
+     * Updates editUrl with modified text from editInputUrl based in the rules of the
+     * current account if it is the default account.
+     */
+    private void updateUrlFromInputUrl() {
+        if(selectedAccount!=null) {
+            if(selectedAccount.isDefault()) {
+                String origUrl = editInputUrl.getText();
+                String newUrl = pwm.getModifiedInputText(origUrl, selectedAccount);
+                editUrl.setText(newUrl);
+            }
+        }
+    }
+    
+
 
 	//////////////////////////////////////////////////////////////
 	//
