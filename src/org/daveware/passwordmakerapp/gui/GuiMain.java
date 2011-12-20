@@ -1261,6 +1261,10 @@ public class GuiMain implements DatabaseListener {
     	isFiltering = false;
     }
     
+    /**
+     * Invoked when the filter text is modified.
+     * @param e The modification event.
+     */
     private void onFilterModified(ModifyEvent e) {
     	String text = accountFilterText.getText();
     	if(text.compareTo(ACCOUNT_FILTER_DESC)==0 || text.length()==0) {
@@ -1270,9 +1274,47 @@ public class GuiMain implements DatabaseListener {
     		isFiltering = true;
     	}
     	
-    	if(accountTreeViewer!=null)
+    	if(accountTreeViewer!=null) {
     		accountTreeViewer.refresh();
+    		if(text.length()>0) {
+    		    accountTreeViewer.expandAll();
+    		    selectFirstLeafAccount();
+    		}
+    	}
     }
+    
+    /**
+     * Selects the first available account that is not a folder, eg a leaf node. It
+     * takes into consideration filtering rules.
+     */
+    private void selectFirstLeafAccount() {
+        // This is a gross hack that doesn't operate on what accountTreeViewer tells us, and that's
+        // because I can't for the life of me figure out how to get it to tell me what leaf nodes
+        // are visible.  I *hate* SWT's documentation.
+        //
+        // This is  inefficient as it is walking the entire account database tree looking
+        // for nodes that match the text, essentially re-filtering. If anyone sees this and knows
+        // how to get at the filtered data, please let me know.
+        String filterText = accountFilterText.getText().toLowerCase();
+        ArrayList<Account> parentStack = new ArrayList<Account>();
+        parentStack.add(db.getRootAccount());
+        
+        while(parentStack.size()>0) {
+            Account parentAccount = parentStack.remove(0);
+            
+            for(Account child : parentAccount.getChildren()) {
+                if(child.isFolder())
+                    parentStack.add(child);
+                else {
+                    if(filterText.length()==0 || child.getName().toLowerCase().contains(filterText)) {
+                        accountTreeViewer.setSelection(new StructuredSelection(child));
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     
     private void onNewAccountSelected() {
         Account parentAccount = null;
