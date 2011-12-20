@@ -33,7 +33,7 @@ Built-At: ${build-info.current-time}</echo>
         <jar destfile="dist/pwmje-${os-platform}-${os-arch}.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
-                <attribute name="Rsrc-Main-Class" value="org.daveware.passwordmaker.Main"/>
+                <attribute name="Rsrc-Main-Class" value="org.daveware.passwordmakerapp.Main"/>
                 <attribute name="Class-Path" value="."/>
                 <attribute name="Rsrc-Class-Path" 
                 	value="./ bcprov-jdk16-146.jar java-getopt-1.0.13.jar swt-${os-platform}-${os-arch}.jar org.eclipse.core.commands_3.6.0.I20110111-0800.jar org.eclipse.equinox.common_3.6.0.v20110523.jar org.eclipse.jface_3.7.0.I20110522-1430.jar org.eclipse.osgi_3.7.0.v20110613.jar org.eclipse.ui.workbench_3.7.0.I20110519-0100.jar" />
