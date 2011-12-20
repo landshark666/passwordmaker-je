@@ -37,7 +37,7 @@
 	
 	<!-- Build the jar files -->
     <target name="build-jars">
-        <property name="version-number" value="0.5.1" />
+        <property name="version-number" value="0.6.0" />
     	<property name="copyright" value="Copyright (C) 2011 Dave Marotti" />
 
         <ant antfile="build-jar.xml" target="build-pwmje-jar">
