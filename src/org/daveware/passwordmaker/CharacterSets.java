@@ -24,4 +24,17 @@ package org.daveware.passwordmaker;
 public class CharacterSets {
     public static String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     public static String BASE_93_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./";
+    public static String ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    public static String SPECIAL_CHARS = "`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./";
+    public static String HEX = "0123456789abcdef";
+    public static String NUMERIC = "0123456789";
+
+    public static String [] CHARSETS = {
+        BASE_93_SET,
+        ALPHANUMERIC,
+        ALPHA,
+        HEX,
+        NUMERIC,
+        SPECIAL_CHARS
+    };
 }

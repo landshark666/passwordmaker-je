@@ -22,6 +22,7 @@ import java.util.Set;
 import org.daveware.passwordmaker.Account;
 import org.daveware.passwordmaker.AccountPatternData;
 import org.daveware.passwordmaker.AlgorithmType;
+import org.daveware.passwordmaker.CharacterSets;
 import org.daveware.passwordmaker.LeetLevel;
 import org.daveware.passwordmaker.LeetType;
 import org.daveware.passwordmaker.PasswordMaker;
@@ -642,7 +643,7 @@ public class AccountDlg {
 		        updatePasswordStrengthMeter();
 		    }
 		});
-		comboCharacters.setItems(new String[] {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./", "0123456789abcdef", "0123456789", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./", "Random"});
+		comboCharacters.setItems(CharacterSets.CHARSETS);
 		GridData gd_comboCharacters = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_comboCharacters.widthHint = 200;
 		comboCharacters.setLayoutData(gd_comboCharacters);
