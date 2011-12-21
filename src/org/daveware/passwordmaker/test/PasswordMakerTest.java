@@ -22,7 +22,6 @@ import static org.junit.Assert.fail;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Set;
 
 import junit.framework.Assert;
 

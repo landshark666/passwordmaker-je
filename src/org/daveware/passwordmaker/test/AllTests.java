@@ -17,7 +17,6 @@
  */
 package org.daveware.passwordmaker.test;
 
-import org.daveware.passwordmaker.Account;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
