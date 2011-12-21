@@ -94,6 +94,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 
 /**
  * Implements the main window for PasswordMakerJE.
@@ -333,6 +335,16 @@ public class GuiMain implements DatabaseListener {
             
         });
         
+        shlPasswordMaker.getDisplay().addFilter(SWT.KeyDown, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                if((e.stateMask & SWT.CTRL) == SWT.CTRL || (e.stateMask & SWT.COMMAND) == SWT.COMMAND) {
+                    if(e.keyCode == 'f') {
+                        accountFilterText.setFocus();
+                    }
+                }
+            }
+        });
         searchImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/magglass.png");
         cancelImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/cancel.png");
         eyeImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye.png");
@@ -378,6 +390,14 @@ public class GuiMain implements DatabaseListener {
         filterIcon.setText("");
         
         accountFilterText = new Text(composite, SWT.BORDER);
+        accountFilterText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent arg0) {
+                if(arg0.keyCode == SWT.CR) {
+                    editMP.setFocus();
+                }
+            }
+        });
         accountFilterText.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent arg0) {
         		onFilterModified(arg0);
@@ -698,7 +718,12 @@ public class GuiMain implements DatabaseListener {
                 newFile();
             }
         });
-        menuItemNew.setText("New");
+        
+        int specialKey = Utilities.isMac() ? SWT.COMMAND : SWT.CTRL;
+        String specialKeyStr = Utilities.isMac() ? "\tCommand+" : "\tCtrl+"; 
+
+        menuItemNew.setText("New" + specialKeyStr + "N");
+        menuItemNew.setAccelerator(specialKey + 'N');
         
         menuItemOpen = new MenuItem(menu_3, SWT.NONE);
         menuItemOpen.addSelectionListener(new SelectionAdapter() {
@@ -707,7 +732,8 @@ public class GuiMain implements DatabaseListener {
                 openFile();
             }
         });
-        menuItemOpen.setText("Open");
+        menuItemOpen.setText("Open" + specialKeyStr + "O");
+        menuItemOpen.setAccelerator(specialKey + 'O');
         
         menuItemSave = new MenuItem(menu_3, SWT.NONE);
         menuItemSave.addSelectionListener(new SelectionAdapter() {
@@ -716,7 +742,8 @@ public class GuiMain implements DatabaseListener {
                 saveFile();
             }
         });
-        menuItemSave.setText("Save");
+        menuItemSave.setText("Save" + specialKeyStr + "S");
+        menuItemSave.setAccelerator(specialKey + 'S');
         
         menuItemSaveAs = new MenuItem(menu_3, SWT.NONE);
         menuItemSaveAs.addSelectionListener(new SelectionAdapter() {
