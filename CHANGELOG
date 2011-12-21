@@ -7,7 +7,8 @@ PasswordMaker Java Edition Change Log
   - When filtering accounts, the account tree now expands to show the accounts
     as well as selects the 1st possible account.
   - Added hotkeys (use "command" in OSX):
-      Ctrl+F = Jump to filter textbox
+      Ctrl+F = Jump to filter textbox (still makes a system beep, not
+               really sure why).
       Ctrl+N = New
       Ctrl+O = Open
       Ctrl+S = Save
