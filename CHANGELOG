@@ -1,0 +1,26 @@
+PasswordMaker Java Edition Change Log
+
+0.6.0
+  - "Default" account behavior added.  This allows for dynamic URLs to be used
+    unlike the static URLs used in other accounts. This matches the behavior
+    of the web verison of passwordmaker.
+  - When filtering accounts, the account tree now expands to show the accounts
+    as well as selects the 1st possible account.
+  - Added hotkeys (use "command" in OSX):
+      Ctrl+F = Jump to filter textbox
+      Ctrl+N = New
+      Ctrl+O = Open
+      Ctrl+S = Save
+      Pressing enter in the filter textbox jumps to the master pasword textbox.
+  - Fixed bug where the password was generated incorrectly while adding a
+    new account.
+  - The source code has been partitioned into an engine set of packages and
+    an application set of packages. This allows the engine to be used in other
+    applications.
+  - Fixed bugs where "Open" and "New" didn't prompt for saving of the current
+    file. 
+  - Added a few more unit tests.
+  - 
+
+0.5.1
+  * Initial release.
