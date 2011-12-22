@@ -20,6 +20,8 @@ package org.daveware.passwordmakerapp.gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -188,14 +190,29 @@ public class GuiMain implements DatabaseListener {
         cmdLineSettings = c;
         buildInfo = new BuildInfo();
     }
+
+    private void showException(Exception e) {
+    	Shell bogus = new Shell();
+
+    	if(e==null) {
+    		MBox.showError(bogus, "An exception has occurred but the data it contained was empty. Please consider filing a bug report at http://code.google.com/p/passwordmaker-je");
+    	}
+    	else {
+	    	ExceptionDlg dlg = new ExceptionDlg(bogus, e);
+	    	dlg.open();
+    	}
+    	
+    	bogus.dispose();
+    }
     
     /**
      * Causes everything to happen. This is called by the calling class.
      * @return
      */
     public int run() {
-        open();
-        return 0;
+   		open();
+   
+   		return 0;
     }
     
     /**
@@ -204,26 +221,36 @@ public class GuiMain implements DatabaseListener {
      * 
      */
     private void open() {
-        display = Display.getDefault();
-        createContents();
-        
-        setupFonts();
-        setupTree();
-        setupDecorators();
-        
-        shlPasswordMaker.open();
-        shlPasswordMaker.layout();
+    	try {
+	        display = Display.getDefault();
+	        createContents();
+	        
+	        setupFonts();
+	        setupTree();
+	        setupDecorators();
+	        
+	        shlPasswordMaker.open();
+	        shlPasswordMaker.layout();
+	
+	        pwm = new PasswordMaker();
+	        loadFromCmdLineSettings();
+	        
+	        regeneratePasswordAndDraw();
 
-        pwm = new PasswordMaker();
-        loadFromCmdLineSettings();
-        
-        regeneratePasswordAndDraw();
+	        while (!shlPasswordMaker.isDisposed()) {
+	            if (!display.readAndDispatch()) {
+	                display.sleep();
+	            }
+	        }
+    	}
+    	catch(NullPointerException ne) {
+    		showException(ne);
+    		return;
+    	}
+    	catch(Exception e) {
+    		showException(e);
+    	}
 
-        while (!shlPasswordMaker.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
-            }
-        }
     }
     
     protected void setupDecorators() {
@@ -1322,6 +1349,12 @@ public class GuiMain implements DatabaseListener {
         // This is  inefficient as it is walking the entire account database tree looking
         // for nodes that match the text, essentially re-filtering. If anyone sees this and knows
         // how to get at the filtered data, please let me know.
+    	
+    	// For some reason only on OSX, selectFirstLeafAccount() gets called before the database
+    	// is ever created.  So...
+    	if(db==null)
+    		return;
+    	
         String filterText = accountFilterText.getText().toLowerCase();
         ArrayList<Account> parentStack = new ArrayList<Account>();
         parentStack.add(db.getRootAccount());
