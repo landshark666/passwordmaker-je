@@ -21,7 +21,8 @@ PasswordMaker Java Edition Change Log
   - Fixed bugs where "Open" and "New" didn't prompt for saving of the current
     file. 
   - Added a few more unit tests.
-  - 
+  - Added an exception dialog if an uncaught exception gets thrown from the 
+    main window.
 
 0.5.1
   * Initial release.
