@@ -49,7 +49,6 @@
 			name="pwmje-${os-platform}-${os-arch}"
 			jar="${basedir}/dist/pwmje-${os-platform}-${os-arch}.jar"
 			mainclass="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"
-			arguments="tacos"
 			icon="${basedir}/icons/pwmje.icns"
 			startOnMainThread="true"
 			jvmversion="1.6+"
