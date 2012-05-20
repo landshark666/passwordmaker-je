@@ -276,11 +276,33 @@ public class PasswordMakerTest {
         a.setUrlComponents(EnumSet.of(UrlComponents.Subdomain, UrlComponents.Domain, UrlComponents.PortPathAnchorQuery));
         Assert.assertEquals("a.domain.is.here.com:8080/somePage.html?param=value", pwm.getModifiedInputText("http://a.domain.is.here.com:8080/somePage.html?param=value", a));
         
+        // Tests for Issue 29, '#' character causes errors in calculation of url modified input text
+        a.setUrlComponents(EnumSet.of(UrlComponents.Domain));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("http://forums.passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("http://forums.passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("forums.passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("forums.passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("http://passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("http://passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+
+        a.setUrlComponents(EnumSet.of(UrlComponents.Domain, UrlComponents.Protocol));
+        Assert.assertEquals("http://passwordmaker.org", pwm.getModifiedInputText("http://forums.passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("http://passwordmaker.org", pwm.getModifiedInputText("http://forums.passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("forums.passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("forums.passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+        Assert.assertEquals("http://passwordmaker.org", pwm.getModifiedInputText("http://passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("http://passwordmaker.org", pwm.getModifiedInputText("http://passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("passwordmaker.org/index.php?topic=1750.new;topicseen#new", a));
+        Assert.assertEquals("passwordmaker.org", pwm.getModifiedInputText("passwordmaker.org/index.php?topic=1750.new;topicseen", a));
+
         // TODO: Firefox-Plugin and Web versions disagree about how to handle the port when no port is present.
         // This test is different with the Firefox plugin.  The firefox plugin would add a ":" after the 
         // domain when "portPathQuery" is selected but no port is actually present. Eric says this is a
         // bug and that the correct behavior is that of the web version.  The test below abides by the
         // web version.  This is an open bug and the behavior is different between implementations.
+        a.setUrlComponents(EnumSet.of(UrlComponents.Subdomain, UrlComponents.Domain, UrlComponents.PortPathAnchorQuery));
         Assert.assertEquals("a.domain.is.here.com/somePage.html?param=value", pwm.getModifiedInputText("http://a.domain.is.here.com/somePage.html?param=value", a));
     }
        
