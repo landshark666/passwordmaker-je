@@ -18,6 +18,7 @@
 package org.daveware.passwordmakerapp.gui;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -974,6 +975,52 @@ public class GuiMain implements DatabaseListener {
         onShowPasswordClicked();  // due to manual "setSelection" not triggering an event
     }
     
+    private boolean loadPredefinedLocations() {
+        // Scan the current directory looking for anything ending in ".rdf"
+        try {
+            String curDir = System.getProperty("user.dir");
+            if(curDir!=null) {
+                File curDirFile = new File(curDir);
+                File [] filelist = curDirFile.listFiles(new FileFilter() {
+                    
+                    @Override
+                    public boolean accept(File pathname) {
+                        return pathname.getAbsolutePath().endsWith(".rdf");
+                    }
+                });
+                
+                for(File f : filelist) {
+                    if(openFile(f.getAbsolutePath(), true))
+                        return true;
+                }
+            }
+        } catch(Exception e) {
+            
+        }
+        
+        // Now try the known home-directory files
+        try {
+            String [] locations = {
+                    "passwordmaker.rdf",
+                    "pwmje.rdf",
+                    ".pwmje.rdf",
+                    ".passwordmakerrc",
+            };
+            String home = System.getProperty("user.home");
+            if(home!=null) {
+                for(String pathPiece : locations) {
+                    String fullPath = home + File.separator + pathPiece;
+                    if(openFile(fullPath, true)==true) {
+                        return true;
+                    }
+                }
+            }
+        } catch(Exception e) {
+            
+        }
+        return false;
+    }
+    
     /**
      * Loads the various fields with data from the config files.
      */
@@ -981,10 +1028,11 @@ public class GuiMain implements DatabaseListener {
         if(cmdLineSettings.matchUrl!=null)
         	editUrlSearch.setText(cmdLineSettings.matchUrl);
         if(cmdLineSettings.inputFilename!=null) {
-            openFile(cmdLineSettings.inputFilename);
+            openFile(cmdLineSettings.inputFilename, false);
         }
         else {
-            newFile();
+            if(loadPredefinedLocations()==false)
+                newFile();
         }
         
         // Only attempt an initial find if something was passed on the commandline
@@ -1571,7 +1619,7 @@ public class GuiMain implements DatabaseListener {
         fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
         String selected = fd.open();
         if(selected!=null && selected.length()>0)
-            return openFile(selected);
+            return openFile(selected, false);
         return false;
     }
 
@@ -1579,9 +1627,11 @@ public class GuiMain implements DatabaseListener {
      * Reads a file in and sets up the necessary widgets with the data. If this fails
      * then it will create a new empty database and return false.
      * @param filename The filename (assumes RDF).
+     * @param inhibitErrors If true, failures to load will not be displayed. This is
+     *                      used for auto-loading of passwordmaker databases.
      * @return true on success.
      */
-    private boolean openFile(String filename) {
+    private boolean openFile(String filename, boolean inhibitErrors) {
         RDFDatabaseReader rdfReader = null;
         File inputFile = null;
         FileInputStream fin = null;
@@ -1609,7 +1659,8 @@ public class GuiMain implements DatabaseListener {
             db.addDatabaseListener(this);
             accountTreeViewer.setInput(db);
     
-            MBox.showError(shlPasswordMaker, "Unable to open " + filename + "\n" + ex.getMessage());
+            if(!inhibitErrors)
+                MBox.showError(shlPasswordMaker, "Unable to open " + filename + "\n" + ex.getMessage());
         }
         finally {
             try {
