@@ -63,6 +63,18 @@
             <property name="os-platform" value="cocoa" />
             <property name="os-arch" value="macosx_x86_64" />
         </ant>
+
+    	<ant antfile="build-jar.xml" target="build-pwmje-jar">
+            <property name="version-number" value="${version-number}" />
+            <property name="os-platform" value="gtk2" />
+            <property name="os-arch" value="linux" />
+        </ant>
+        
+        <ant antfile="build-jar.xml" target="build-pwmje-jar">
+            <property name="version-number" value="${version-number}" />
+            <property name="os-platform" value="gtk2" />
+            <property name="os-arch" value="linux_x86_64" />
+        </ant>
     </target>
 
 	<!-- Build Windows installers -->
