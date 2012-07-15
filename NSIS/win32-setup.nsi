@@ -57,7 +57,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile ..\dist\passwordmaker-je-win32-setup.exe
+OutFile ..\dist\passwordmaker-je-win32-${VERSION}-setup.exe
 InstallDir "$PROGRAMFILES\PasswordMaker Java Edition"
 CRCCheck on
 XPStyle on
