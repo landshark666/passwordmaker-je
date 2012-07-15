@@ -1,6 +1,6 @@
 PasswordMaker Java Edition Change Log
 
-X.X.X
+0.7.0
   - Issue 29 fixed. Hash marks, '#', no longer cause problems in the input URL.
   - Issue 30 fixed. If a file with name that ends with ".rdf" exists in the
     directory where pwmje was launched, pwmje will attempt to launch it. If
@@ -12,6 +12,13 @@ X.X.X
       o $HOME/.pwmje.rdf
       o $HOME/.passwordmakerrc
     Again, any failure will be silent.
+  - When tabbing between fields in the main window, all the text of the focused
+    control is automatically selected.
+  - Added drag and drop onto the text fields of the main window. You can drag
+    an URL from a browser (IE/Firefox/Chrome/etc) onto the Input URL text field
+    and it will search the list of accounts for a match, selecting it if a match
+    is found.
+  - Fixed missing image credits text in about window.
       
 0.6.0
   - "Default" account behavior added.  This allows for dynamic URLs to be used

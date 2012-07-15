@@ -50,6 +50,13 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.URLTransfer;
 import org.eclipse.swt.events.ArmEvent;
 import org.eclipse.swt.events.ArmListener;
 import org.eclipse.swt.events.ControlAdapter;
@@ -226,6 +233,7 @@ public class GuiMain implements DatabaseListener {
 	        display = Display.getDefault();
 	        createContents();
 	        
+	        setupDragQueens();
 	        setupFonts();
 	        setupTree();
 	        setupDecorators();
@@ -252,6 +260,37 @@ public class GuiMain implements DatabaseListener {
     		showException(e);
     	}
 
+    }
+    
+    /**
+     * Enables dropping of text onto a text field (both types: text & url).
+     * @param textField The field to add drop ability to.
+     */
+    private void dragify(final Text textField) {
+        DropTarget dt = new DropTarget(textField, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+        dt.setTransfer(new Transfer[] { TextTransfer.getInstance(), URLTransfer.getInstance() } );
+        dt.addDropListener(new DropTargetAdapter() {
+            public void dragEnter(DropTargetEvent e) {
+                e.detail = DND.DROP_COPY;
+            }
+            public void dragOperationChanged(DropTargetEvent e) {
+                e.detail = DND.DROP_COPY;
+            }
+            public void drop(org.eclipse.swt.dnd.DropTargetEvent event) {
+                textField.setText(event.data.toString());
+            }
+        });
+    }
+    
+    /**
+     * Adds drag'n'drop to all the editable text fields.
+     */
+    private void setupDragQueens() {
+        dragify(accountFilterText);
+        dragify(editInputUrl);
+        dragify(editMP);
+        dragify(editUrlSearch);
+        dragify(editUsername);
     }
     
     protected void setupDecorators() {
@@ -473,6 +512,12 @@ public class GuiMain implements DatabaseListener {
         lblUrl.setText("URL Search:");
         
         editUrlSearch = new Text(grpInput, SWT.BORDER);
+        editUrlSearch.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                ((Text)(arg0.widget)).selectAll();
+            }
+        });
         editUrlSearch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         editUrlSearch.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent arg0) {
@@ -503,6 +548,12 @@ public class GuiMain implements DatabaseListener {
         lblInputUrl.setText("Input URL:");
         
         editInputUrl = new Text(grpInput, SWT.BORDER);
+        editInputUrl.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                ((Text)(arg0.widget)).selectAll();
+            }
+        });
         editInputUrl.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent arg0) {
                 regeneratePasswordAndDraw();
@@ -524,6 +575,12 @@ public class GuiMain implements DatabaseListener {
         lblUsername.setText("Username:");
         
         editUsername = new Text(grpInput, SWT.BORDER);
+        editUsername.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                ((Text)(arg0.widget)).selectAll();
+            }
+        });
         editUsername.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent arg0) {
                 regeneratePasswordAndDraw();
@@ -536,6 +593,12 @@ public class GuiMain implements DatabaseListener {
         lblMasterPw.setText("Master PW:");
         
         editMP = new Text(grpInput, SWT.BORDER | SWT.PASSWORD);
+        editMP.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                ((Text)(arg0.widget)).selectAll();
+            }
+        });
         editMP.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         editMP.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent arg0) {
@@ -624,6 +687,10 @@ public class GuiMain implements DatabaseListener {
             @Override
             public void focusLost(FocusEvent arg0) {
                 onSecondsFocusLost();
+            }
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                ((Text)(arg0.widget)).selectAll();
             }
         });
         editCopySeconds.setText("5");
@@ -734,7 +801,7 @@ public class GuiMain implements DatabaseListener {
                 onFileMenuArmed();
             }
         });
-        mntmFile.setText("File");
+        mntmFile.setText("&File");
         
         menu_3 = new Menu(mntmFile);
         mntmFile.setMenu(menu_3);
@@ -750,7 +817,7 @@ public class GuiMain implements DatabaseListener {
         int specialKey = Utilities.isMac() ? SWT.COMMAND : SWT.CTRL;
         String specialKeyStr = Utilities.isMac() ? "\tCommand+" : "\tCtrl+"; 
 
-        menuItemNew.setText("New" + specialKeyStr + "N");
+        menuItemNew.setText("New Database\tCtrl+N");
         menuItemNew.setAccelerator(specialKey + 'N');
         
         menuItemOpen = new MenuItem(menu_3, SWT.NONE);
@@ -760,7 +827,7 @@ public class GuiMain implements DatabaseListener {
                 openFile();
             }
         });
-        menuItemOpen.setText("Open" + specialKeyStr + "O");
+        menuItemOpen.setText("Open Database\tCtrl+O");
         menuItemOpen.setAccelerator(specialKey + 'O');
         
         menuItemSave = new MenuItem(menu_3, SWT.NONE);
@@ -770,7 +837,7 @@ public class GuiMain implements DatabaseListener {
                 saveFile();
             }
         });
-        menuItemSave.setText("Save" + specialKeyStr + "S");
+        menuItemSave.setText("Save Database\tCtrl+S");
         menuItemSave.setAccelerator(specialKey + 'S');
         
         menuItemSaveAs = new MenuItem(menu_3, SWT.NONE);
@@ -780,7 +847,7 @@ public class GuiMain implements DatabaseListener {
                 saveFileAs();
             }
         });
-        menuItemSaveAs.setText("Save As");
+        menuItemSaveAs.setText("Save Database As");
         
         new MenuItem(menu_3, SWT.SEPARATOR);
         
@@ -1111,6 +1178,8 @@ public class GuiMain implements DatabaseListener {
     	accountFilterText.setFont(regularSearchFont);
     
     	filterIcon.setVisible(false);
+    	
+    	accountFilterText.selectAll();
     }
 
     /**

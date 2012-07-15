@@ -118,7 +118,7 @@ public class AboutDlg extends Dialog {
 		String line;
 		
 		try {
-			is = getClass().getResourceAsStream("/org/daveware/passwordmaker/icons/ImageLicenses.txt");
+			is = getClass().getResourceAsStream("/org/daveware/passwordmakerapp/icons/ImageLicenses.txt");
 			isr = new InputStreamReader(is);
 			br = new BufferedReader(isr);
 			
@@ -128,7 +128,7 @@ public class AboutDlg extends Dialog {
 			}
 			textImages.setText(buffer.toString());
 		} catch(Exception e) {
-			
+			textImages.setText(e.getMessage());
 		} finally {
 			if(br!=null)
 				try { br.close(); } catch(Exception ee) {}
@@ -247,7 +247,7 @@ public class AboutDlg extends Dialog {
 		
 		lblIcon = new Label(composite_1, SWT.NONE);
 		lblIcon.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblIcon.setImage(SWTResourceManager.getImage(AboutDlg.class, "/org/daveware/passwordmaker/icons/pwmlogo.png"));
+		lblIcon.setImage(SWTResourceManager.getImage(AboutDlg.class, "/org/daveware/passwordmakerapp/icons/pwmlogo.png"));
 		
 		composite_2 = new Composite(composite_1, SWT.NONE);
 		composite_2.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -262,7 +262,7 @@ public class AboutDlg extends Dialog {
 		
 		lblCopyrightcDave = new Label(composite_2, SWT.NONE);
 		lblCopyrightcDave.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblCopyrightcDave.setText("Copyright (C) Dave Marotti, 2011. All rights reserved.");
+		lblCopyrightcDave.setText("Copyright (C) Dave Marotti, 2011-2012. All rights reserved.");
 		
 		link = new Link(composite_2, SWT.NONE);
 		link.addSelectionListener(new SelectionAdapter() {
