@@ -78,7 +78,7 @@ Section -Main SEC0000
     SetShellVarContext all
     SetOutPath $INSTDIR
     SetOverwrite on
-    File ..\dist\pwmje-win32-win32.jar
+    File ..\dist\pwmje-win32-win32-${VERSION}.jar
     File ..\icons\pwmje.ico
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 SectionEnd
@@ -120,7 +120,7 @@ done${UNSECTION_ID}:
 Section /o -un.Main UNSEC0000
     SetShellVarContext all
     Delete /REBOOTOK $INSTDIR\pwmje.ico
-    Delete /REBOOTOK $INSTDIR\pwmje-win32-win32.jar
+    Delete /REBOOTOK $INSTDIR\pwmje-win32-win32-${VERSION}.jar
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
 
