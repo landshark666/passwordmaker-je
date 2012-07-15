@@ -47,7 +47,7 @@
 			classname="net.sourceforge.jarbundler.JarBundler" />
 		<jarbundler dir="${basedir}/dist" verbose="true" showPlist="true"
 			name="pwmje-${os-platform}-${os-arch}"
-			jar="${basedir}/dist/pwmje-${os-platform}-${os-arch}.jar"
+			jar="${basedir}/dist/pwmje-${os-platform}-${os-arch}-${version-number}.jar"
 			mainclass="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"
 			icon="${basedir}/icons/pwmje.icns"
 			startOnMainThread="true"

@@ -30,7 +30,7 @@
         <echo file="dist/build-info.properties" append="false">Implementation-Version: ${version-number} 
 Built-On: ${build-info.current-date}
 Built-At: ${build-info.current-time}</echo>
-        <jar destfile="dist/pwmje-${os-platform}-${os-arch}.jar">
+        <jar destfile="dist/pwmje-${os-platform}-${os-arch}-${version-number}.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="org.daveware.passwordmakerapp.Main"/>
