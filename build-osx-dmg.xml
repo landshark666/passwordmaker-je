@@ -66,7 +66,7 @@
     	-->
     	
     	<!-- Indicate that we want a custom icon -->
-		<exec executable="/Developer/Tools/SetFile" os="Mac OS X">
+		<exec executable="/usr/bin/SetFile" os="Mac OS X">
 			<arg value="-a" />
     		<arg value="C" />
 			<arg value="${mountdir}/${app.name}" />
