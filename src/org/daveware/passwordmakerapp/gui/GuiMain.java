@@ -21,8 +21,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -103,6 +101,7 @@ import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -110,16 +109,17 @@ import org.eclipse.swt.events.KeyEvent;
 /**
  * Implements the main window for PasswordMakerJE.
  * 
- * TODO: this should really be using validation, but I'm yet to figure out how to make it
- * work properly.  I can't find the damned fieldassist package of jface.
+ * TODO: this should really be using validation, but I'm yet to figure out how
+ * to make it work properly. I can't find the damned fieldassist package of
+ * jface.
  * 
  * @author Dave Marotti
  */
 public class GuiMain implements DatabaseListener {
-	// Text used in the account-filter box by default
+    // Text used in the account-filter box by default
     private final static String ACCOUNT_FILTER_DESC = "type filter text";
     private final static String TITLE_STRING = "PasswordMaker Java Edition";
-    
+
     private final static String EXIT_PROMPT = "Your current passwords and/or settings have been modified, would you like to save?";
 
     protected Shell shlPasswordMaker;
@@ -157,25 +157,25 @@ public class GuiMain implements DatabaseListener {
     private MenuItem menuItemSave;
     private MenuItem menuItemSaveAs;
     private ControlDecoration secondsDecoration;
-    
-    
-    //-------- BEGIN RESOURCES THAT MUST BE DISPOSED OF ---------------------------------
+
+    // -------- BEGIN RESOURCES THAT MUST BE DISPOSED OF
+    // ---------------------------------
     private Image searchImage = null;
     private Image cancelImage = null;
     private Image passwordImage = null;
     private Image eyeImage = null;
     private Image eyeClosedImage = null;
-    
+
     private Font passwordFont = null;
-    
+
     private Font regularSearchFont = null;
     private Font italicsSearchFont = null;
 
     private AccountTreeModel accountTreeModel = new AccountTreeModel();
     private AccountTreeLabelProvider accountTreeLabelProvider = new AccountTreeLabelProvider();
-    //-------- End RESOURCES THAT MUST BE DISPOSED OF -----------------------------------
+    // -------- End RESOURCES THAT MUST BE DISPOSED OF
+    // -----------------------------------
 
-    
     private CmdLineSettings cmdLineSettings;
     private String currentFilename = "";
     private Account selectedAccount = null;
@@ -184,7 +184,7 @@ public class GuiMain implements DatabaseListener {
     private BuildInfo buildInfo = null;
     private SortOptions sortOptions = new SortOptions();
     private boolean urlSearchEnabled = true;
-    
+
     private boolean isFiltering = false;
     private boolean showPassword = true;
 
@@ -193,196 +193,201 @@ public class GuiMain implements DatabaseListener {
     private Label lblInputUrl;
     private Text editUrl;
     private Label lblUrl_1;
-    
+
     public GuiMain(CmdLineSettings c) {
         cmdLineSettings = c;
         buildInfo = new BuildInfo();
     }
 
     private void showException(Exception e) {
-    	Shell bogus = new Shell();
+        Shell bogus = new Shell();
 
-    	if(e==null) {
-    		MBox.showError(bogus, "An exception has occurred but the data it contained was empty. Please consider filing a bug report at http://code.google.com/p/passwordmaker-je");
-    	}
-    	else {
-	    	ExceptionDlg dlg = new ExceptionDlg(bogus, e);
-	    	dlg.open();
-    	}
-    	
-    	bogus.dispose();
+        if (e == null) {
+            MBox.showError(
+                    bogus,
+                    "An exception has occurred but the data it contained was empty. Please consider filing a bug report at http://code.google.com/p/passwordmaker-je");
+        } else {
+            ExceptionDlg dlg = new ExceptionDlg(bogus, e);
+            dlg.open();
+        }
+
+        bogus.dispose();
     }
-    
+
     /**
      * Causes everything to happen. This is called by the calling class.
+     * 
      * @return
      */
     public int run() {
-   		open();
-   
-   		return 0;
+        open();
+
+        return 0;
     }
-    
+
     /**
      * Open the window, builds the UI, and runs the event loop.
+     * 
      * @wbp.parser.entryPoint
      * 
      */
     private void open() {
-    	try {
-	        display = Display.getDefault();
-	        createContents();
-	        
-	        setupDragQueens();
-	        setupFonts();
-	        setupTree();
-	        setupDecorators();
-	        
-	        shlPasswordMaker.open();
-	        shlPasswordMaker.layout();
-	
-	        pwm = new PasswordMaker();
-	        loadFromCmdLineSettings();
-	        
-	        regeneratePasswordAndDraw();
+        try {
+            display = Display.getDefault();
+            createContents();
 
-	        while (!shlPasswordMaker.isDisposed()) {
-	            if (!display.readAndDispatch()) {
-	                display.sleep();
-	            }
-	        }
-    	}
-    	catch(NullPointerException ne) {
-    		showException(ne);
-    		return;
-    	}
-    	catch(Exception e) {
-    		showException(e);
-    	}
+            setupDragQueens();
+            setupFonts();
+            setupTree();
+            setupDecorators();
+
+            shlPasswordMaker.open();
+            shlPasswordMaker.layout();
+
+            pwm = new PasswordMaker();
+            loadFromCmdLineSettings();
+
+            regeneratePasswordAndDraw();
+
+            while (!shlPasswordMaker.isDisposed()) {
+                if (!display.readAndDispatch()) {
+                    display.sleep();
+                }
+            }
+        } catch (NullPointerException ne) {
+            showException(ne);
+            return;
+        } catch (Exception e) {
+            showException(e);
+        }
 
     }
-    
+
     /**
-     * Enables dropping of text onto a text field (both types: text & url).
-     * @param textField The field to add drop ability to.
+     * Adds drag'n'drop to the shell for URLs (and other text, but really for
+     * URLs).
      */
-    private void dragify(final Text textField) {
-        DropTarget dt = new DropTarget(textField, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-        dt.setTransfer(new Transfer[] { TextTransfer.getInstance(), URLTransfer.getInstance() } );
+    private void setupDragQueens() {
+        DropTarget dt = new DropTarget(shlPasswordMaker, DND.DROP_MOVE
+                | DND.DROP_COPY | DND.DROP_LINK);
+        dt.setTransfer(new Transfer[] { TextTransfer.getInstance(),
+                URLTransfer.getInstance() });
         dt.addDropListener(new DropTargetAdapter() {
             public void dragEnter(DropTargetEvent e) {
                 e.detail = DND.DROP_COPY;
             }
+
             public void dragOperationChanged(DropTargetEvent e) {
                 e.detail = DND.DROP_COPY;
             }
+
             public void drop(org.eclipse.swt.dnd.DropTargetEvent event) {
-                textField.setText(event.data.toString());
+                editUrlSearch.setText(event.data.toString());
+                editMP.setFocus();
+
+                // TODO: *could* clear out the account filtering, but I'm not
+                // sure why someone would
+                // add a filter and then drag & drop.
             }
         });
     }
-    
-    /**
-     * Adds drag'n'drop to all the editable text fields.
-     */
-    private void setupDragQueens() {
-        dragify(accountFilterText);
-        dragify(editInputUrl);
-        dragify(editMP);
-        dragify(editUrlSearch);
-        dragify(editUsername);
-    }
-    
+
     protected void setupDecorators() {
-        ControlDecoration [] decors = { secondsDecoration };
-        Image image = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage();
-        for(ControlDecoration dec : decors) {
+        ControlDecoration[] decors = { secondsDecoration };
+        Image image = FieldDecorationRegistry.getDefault()
+                .getFieldDecoration(FieldDecorationRegistry.DEC_ERROR)
+                .getImage();
+        for (ControlDecoration dec : decors) {
             dec.setImage(image);
             dec.hide();
         }
     }
-    
-    protected void setupFonts() {
-        // Clone the font of the accountFilterText widget 
-        Font stockFont = accountFilterText.getFont();
-        FontData [] fdItalics = display.getSystemFont().getFontData();
 
-        
+    protected void setupFonts() {
+        // Clone the font of the accountFilterText widget
+        Font stockFont = accountFilterText.getFont();
+        FontData[] fdItalics = display.getSystemFont().getFontData();
+
         // Default OSX font doesn't support italics (on my system)
-        if(Utilities.isMac()) {
-        	italicsSearchFont = new Font(display, fdItalics[0].getName(), fdItalics[0].getHeight(), 0);
-        }
-        else {
-        	italicsSearchFont = new Font(display, fdItalics[0].getName(), fdItalics[0].getHeight(), SWT.ITALIC);
+        if (Utilities.isMac()) {
+            italicsSearchFont = new Font(display, fdItalics[0].getName(),
+                    fdItalics[0].getHeight(), 0);
+        } else {
+            italicsSearchFont = new Font(display, fdItalics[0].getName(),
+                    fdItalics[0].getHeight(), SWT.ITALIC);
         }
 
         regularSearchFont = new Font(display, stockFont.getFontData());
         accountFilterText.setFont(italicsSearchFont);
-        
-        passwordFont = new Font(Display.getCurrent(), fdItalics[0].getName(), 14, SWT.BOLD);
+
+        passwordFont = new Font(Display.getCurrent(), fdItalics[0].getName(),
+                14, SWT.BOLD);
     }
-    
+
     protected void setupTree() {
         // The tree must have a brain!
         accountTreeLabelProvider.loadImages();
         accountTreeViewer.setContentProvider(accountTreeModel);
         accountTreeViewer.setLabelProvider(accountTreeLabelProvider);
-        
-        accountTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-			
-			@Override
-			public void selectionChanged(SelectionChangedEvent e) {
-				if(e.getSelection().isEmpty()) {
-					selectAccount(null);
-				}
-				else if(e.getSelection() instanceof IStructuredSelection ){
-					IStructuredSelection selection = (IStructuredSelection)e.getSelection();
-					Account account = (Account)selection.iterator().next();
-					selectAccount(account);
-				}
-			}
-		});
-        
-        accountTreeViewer.addFilter(new ViewerFilter() {
-			@Override
-			public boolean select(Viewer viewer, Object parentElement, Object element) {
-			    ArrayList<Account> parentList = new ArrayList<Account>();
-			    
-				if(isFiltering==false)
-					return true;
-				
-				if(element==null)
-					return false;
-				
-				String filterText = accountFilterText.getText().toLowerCase();
-				Account account = (Account)element;
-				
-				if(account.isFolder()==false)
-				    return account.getName().toLowerCase().contains(filterText);
-				
 
-				// Search through all children looking for a matching account.  If there is
-				// a match, then this folder must remain visible.
-				parentList.add(account);
-				while(parentList.size()>0) {
-				    account = parentList.remove(0);
-				    
-				    for(Account child : account.getChildren()) {
-				        if(child.isFolder()) {
-				            parentList.add(child);
-				        }
-				        else {
-				            if(child.getName().toLowerCase().contains(filterText))
-				                return true;
-				        }
-				    }
-				}
-				
-				return false;
-			}
-		});
+        accountTreeViewer
+                .addSelectionChangedListener(new ISelectionChangedListener() {
+
+                    @Override
+                    public void selectionChanged(SelectionChangedEvent e) {
+                        if (e.getSelection().isEmpty()) {
+                            selectAccount(null);
+                        } else if (e.getSelection() instanceof IStructuredSelection) {
+                            IStructuredSelection selection = (IStructuredSelection) e
+                                    .getSelection();
+                            Account account = (Account) selection.iterator()
+                                    .next();
+                            selectAccount(account);
+                        }
+                    }
+                });
+
+        accountTreeViewer.addFilter(new ViewerFilter() {
+            @Override
+            public boolean select(Viewer viewer, Object parentElement,
+                    Object element) {
+                ArrayList<Account> parentList = new ArrayList<Account>();
+
+                if (isFiltering == false)
+                    return true;
+
+                if (element == null)
+                    return false;
+
+                String filterText = accountFilterText.getText().toLowerCase();
+                Account account = (Account) element;
+
+                if (account.isFolder() == false)
+                    return account.getName().toLowerCase().contains(filterText);
+
+                // Search through all children looking for a matching account.
+                // If there is
+                // a match, then this folder must remain visible.
+                parentList.add(account);
+                while (parentList.size() > 0) {
+                    account = parentList.remove(0);
+
+                    for (Account child : account.getChildren()) {
+                        if (child.isFolder()) {
+                            parentList.add(child);
+                        } else {
+                            if (child.getName().toLowerCase()
+                                    .contains(filterText))
+                                return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        });
     }
-    
+
     /**
      * Create contents of the window.
      */
@@ -399,30 +404,36 @@ public class GuiMain implements DatabaseListener {
             public void handleEvent(Event arg0) {
                 onCloseWindow(arg0);
             }
-            
+
         });
-        
+
         shlPasswordMaker.getDisplay().addFilter(SWT.KeyDown, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                if((e.stateMask & SWT.CTRL) == SWT.CTRL || (e.stateMask & SWT.COMMAND) == SWT.COMMAND) {
-                    if(e.keyCode == 'f') {
+                if ((e.stateMask & SWT.CTRL) == SWT.CTRL
+                        || (e.stateMask & SWT.COMMAND) == SWT.COMMAND) {
+                    if (e.keyCode == 'f') {
                         accountFilterText.setFocus();
                     }
                 }
             }
         });
-        searchImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/magglass.png");
-        cancelImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/cancel.png");
-        eyeImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye.png");
-        eyeClosedImage = SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye_closed.png");
+        searchImage = SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/magglass.png");
+        cancelImage = SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/cancel.png");
+        eyeImage = SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/eye.png");
+        eyeClosedImage = SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/eye_closed.png");
 
         shlPasswordMaker.setMinimumSize(new Point(855, 345));
         shlPasswordMaker.setSize(855, 412);
         setTitle();
-//        shlPasswordMaker.setText(TITLE_STRING + " - " + buildInfo.getVersion());
+        // shlPasswordMaker.setText(TITLE_STRING + " - " +
+        // buildInfo.getVersion());
         shlPasswordMaker.setLayout(new FormLayout());
-        
+
         Sash sash = new Sash(shlPasswordMaker, SWT.VERTICAL);
         Group grpAccounts = new Group(shlPasswordMaker, SWT.NONE);
         FormData fd_grpAccounts = new FormData();
@@ -433,68 +444,72 @@ public class GuiMain implements DatabaseListener {
         grpAccounts.setLayoutData(fd_grpAccounts);
         grpAccounts.setText("Accounts");
         grpAccounts.setLayout(new GridLayout(1, false));
-        
+
         Composite composite = new Composite(grpAccounts, SWT.NONE);
         composite.addControlListener(new ControlAdapter() {
-        	@Override
-        	public void controlResized(ControlEvent arg0) {
-        		onFilterCompositeResized(arg0);
-        	}
+            @Override
+            public void controlResized(ControlEvent arg0) {
+                onFilterCompositeResized(arg0);
+            }
         });
         composite.setLayout(null);
-        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-        
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false,
+                1, 1));
+
         filterIcon = new CLabel(composite, SWT.NONE);
         filterIcon.addMouseListener(new MouseAdapter() {
-        	@Override
-        	public void mouseUp(MouseEvent arg0) {
-        		onFilterIconClicked();
-        	}
+            @Override
+            public void mouseUp(MouseEvent arg0) {
+                onFilterIconClicked();
+            }
         });
-        filterIcon.setBackground(SWTResourceManager.getColor(SWT.COLOR_LIST_BACKGROUND));
-        filterIcon.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/magglass.png"));
+        filterIcon.setBackground(SWTResourceManager
+                .getColor(SWT.COLOR_LIST_BACKGROUND));
+        filterIcon.setImage(SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/magglass.png"));
         filterIcon.setBounds(187, 1, 22, 20);
         filterIcon.setText("");
-        
+
         accountFilterText = new Text(composite, SWT.BORDER);
         accountFilterText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent arg0) {
-                if(arg0.keyCode == SWT.CR) {
+                if (arg0.keyCode == SWT.CR) {
                     editMP.setFocus();
                 }
             }
         });
         accountFilterText.addModifyListener(new ModifyListener() {
-        	public void modifyText(ModifyEvent arg0) {
-        		onFilterModified(arg0);
-        	}
+            public void modifyText(ModifyEvent arg0) {
+                onFilterModified(arg0);
+            }
         });
         accountFilterText.setText("type filter text");
         accountFilterText.setBounds(0, 0, 209, 23);
         accountFilterText.addFocusListener(new FocusAdapter() {
-        	@Override
-        	public void focusGained(FocusEvent arg0) {
-        		onAccountFilterTextFocusGained();
-        	}
-        	@Override
-        	public void focusLost(FocusEvent arg0) {
-        		onAccountFilterTextFocusLost();
-        	}
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                onAccountFilterTextFocusGained();
+            }
+
+            @Override
+            public void focusLost(FocusEvent arg0) {
+                onAccountFilterTextFocusLost();
+            }
         });
-        
+
         final FormData sashData = new FormData();
         sashData.left = new FormAttachment(22);
         sashData.top = new FormAttachment(0);
         sashData.bottom = new FormAttachment(100);
         sash.setLayoutData(sashData);
         sash.addListener(SWT.Selection, new Listener() {
-        	public void handleEvent(Event event) {
-        		if(event.detail!=SWT.DRAG){
-        			sashData.left = new FormAttachment(0, event.x);
-        			shlPasswordMaker.layout();
-        		}
-        	}
+            public void handleEvent(Event event) {
+                if (event.detail != SWT.DRAG) {
+                    sashData.left = new FormAttachment(0, event.x);
+                    shlPasswordMaker.layout();
+                }
+            }
         });
         Group grpInput = new Group(shlPasswordMaker, SWT.NONE);
         grpInput.setText("Password Input && Search");
@@ -506,52 +521,59 @@ public class GuiMain implements DatabaseListener {
         grpInput.setLayoutData(fd_grpInput);
         GridLayout gl_grpInput = new GridLayout(2, false);
         grpInput.setLayout(gl_grpInput);
-        
+
         Label lblUrl = new Label(grpInput, SWT.NONE);
-        lblUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false,
+                1, 1));
         lblUrl.setText("URL Search:");
-        
+
         editUrlSearch = new Text(grpInput, SWT.BORDER);
         editUrlSearch.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent arg0) {
-                ((Text)(arg0.widget)).selectAll();
+                ((Text) (arg0.widget)).selectAll();
             }
         });
-        editUrlSearch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        editUrlSearch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+                false, 1, 1));
         editUrlSearch.addModifyListener(new ModifyListener() {
-        	public void modifyText(ModifyEvent arg0) {
-        		onUrlSearchModified(arg0);
-        	}
+            public void modifyText(ModifyEvent arg0) {
+                onUrlSearchModified(arg0);
+            }
         });
-        
+
         Label lblAccount = new Label(grpInput, SWT.RIGHT);
-        lblAccount.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblAccount.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+                false, 1, 1));
         lblAccount.setText("Account:");
-        
+
         editAccount = new Text(grpInput, SWT.BORDER);
-        editAccount.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        editAccount.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+                false, 1, 1));
         editAccount.setEnabled(false);
         editAccount.setEditable(false);
-        
+
         Label lblDescription = new Label(grpInput, SWT.RIGHT);
-        lblDescription.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+        lblDescription.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false,
+                false, 1, 1));
         lblDescription.setText("Description:");
-        
+
         editDesc = new Text(grpInput, SWT.BORDER | SWT.V_SCROLL);
-        editDesc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+        editDesc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1,
+                1));
         editDesc.setEnabled(false);
         editDesc.setEditable(false);
-        
+
         lblInputUrl = new Label(grpInput, SWT.NONE);
-        lblInputUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblInputUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+                false, 1, 1));
         lblInputUrl.setText("Input URL:");
-        
+
         editInputUrl = new Text(grpInput, SWT.BORDER);
         editInputUrl.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent arg0) {
-                ((Text)(arg0.widget)).selectAll();
+                ((Text) (arg0.widget)).selectAll();
             }
         });
         editInputUrl.addModifyListener(new ModifyListener() {
@@ -559,26 +581,30 @@ public class GuiMain implements DatabaseListener {
                 regeneratePasswordAndDraw();
             }
         });
-        editInputUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        
+        editInputUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+                false, 1, 1));
+
         lblUrl_1 = new Label(grpInput, SWT.NONE);
-        lblUrl_1.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblUrl_1.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+                false, 1, 1));
         lblUrl_1.setText("URL:");
-        
+
         editUrl = new Text(grpInput, SWT.BORDER);
         editUrl.setEnabled(false);
         editUrl.setEditable(false);
-        editUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        
+        editUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
+                1, 1));
+
         Label lblUsername = new Label(grpInput, SWT.RIGHT);
-        lblUsername.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblUsername.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+                false, 1, 1));
         lblUsername.setText("Username:");
-        
+
         editUsername = new Text(grpInput, SWT.BORDER);
         editUsername.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent arg0) {
-                ((Text)(arg0.widget)).selectAll();
+                ((Text) (arg0.widget)).selectAll();
             }
         });
         editUsername.addModifyListener(new ModifyListener() {
@@ -586,26 +612,29 @@ public class GuiMain implements DatabaseListener {
                 regeneratePasswordAndDraw();
             }
         });
-        editUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        
+        editUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+                false, 1, 1));
+
         Label lblMasterPw = new Label(grpInput, SWT.RIGHT);
-        lblMasterPw.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblMasterPw.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+                false, 1, 1));
         lblMasterPw.setText("Master PW:");
-        
+
         editMP = new Text(grpInput, SWT.BORDER | SWT.PASSWORD);
         editMP.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent arg0) {
-                ((Text)(arg0.widget)).selectAll();
+                ((Text) (arg0.widget)).selectAll();
             }
         });
-        editMP.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        editMP.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1,
+                1));
         editMP.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent arg0) {
                 regeneratePasswordAndDraw();
             }
         });
-        
+
         Composite composite_1 = new Composite(grpInput, SWT.NONE);
         GridLayout gl_composite_1 = new GridLayout(1, false);
         gl_composite_1.marginHeight = 0;
@@ -613,51 +642,58 @@ public class GuiMain implements DatabaseListener {
         gl_composite_1.verticalSpacing = 0;
         gl_composite_1.horizontalSpacing = 0;
         composite_1.setLayout(gl_composite_1);
-        GridData gd_composite_1 = new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1);
+        GridData gd_composite_1 = new GridData(SWT.RIGHT, SWT.TOP, false,
+                false, 1, 1);
         gd_composite_1.heightHint = 33;
         composite_1.setLayoutData(gd_composite_1);
-        
+
         Label lblGenerated = new Label(composite_1, SWT.RIGHT);
-        lblGenerated.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblGenerated.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+                false, 1, 1));
         lblGenerated.setText("Generated:");
-        
+
         btnShowPassword = new Button(composite_1, SWT.FLAT | SWT.TOGGLE);
         btnShowPassword.addSelectionListener(new SelectionAdapter() {
-        	@Override
-        	public void widgetSelected(SelectionEvent arg0) {
-        		onShowPasswordClicked();
-        	}
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                onShowPasswordClicked();
+            }
         });
-        btnShowPassword.setToolTipText("Toggles the visibility of the generated password.");
-        GridData gd_btnShowPassword = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+        btnShowPassword
+                .setToolTipText("Toggles the visibility of the generated password.");
+        GridData gd_btnShowPassword = new GridData(SWT.RIGHT, SWT.CENTER,
+                false, false, 1, 1);
         gd_btnShowPassword.widthHint = 20;
         gd_btnShowPassword.heightHint = 17;
         btnShowPassword.setLayoutData(gd_btnShowPassword);
-        btnShowPassword.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/eye.png"));
-        
+        btnShowPassword.setImage(SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/eye.png"));
+
         Canvas outputCanvas = new Canvas(grpInput, SWT.BORDER);
         outputCanvas.setLayout(new FillLayout(SWT.HORIZONTAL));
-        outputCanvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+        outputCanvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
+                false, 1, 1));
         outputCanvas.addControlListener(new ControlAdapter() {
             @Override
             public void controlResized(ControlEvent e) {
-                if(passwordImage!=null)
+                if (passwordImage != null)
                     passwordImage.dispose();
-                passwordImage = new Image(Display.getCurrent(), canvasOutput.getClientArea());
+                passwordImage = new Image(Display.getCurrent(), canvasOutput
+                        .getClientArea());
                 regeneratePasswordAndDraw();
             }
-            
+
         });
         outputCanvas.addPaintListener(new PaintListener() {
             public void paintControl(PaintEvent arg0) {
-                if(passwordImage!=null) {
+                if (passwordImage != null) {
                     arg0.gc.drawImage(passwordImage, 0, 0);
                 }
             }
         });
         canvasOutput = outputCanvas;
         new Label(grpInput, SWT.NONE);
-        
+
         Composite compositeButtons = new Composite(grpInput, SWT.NONE);
         GridLayout gl_compositeButtons = new GridLayout(4, false);
         gl_compositeButtons.horizontalSpacing = 7;
@@ -665,9 +701,10 @@ public class GuiMain implements DatabaseListener {
         gl_compositeButtons.marginWidth = 0;
         gl_compositeButtons.marginHeight = 0;
         compositeButtons.setLayout(gl_compositeButtons);
-        
+
         btnCopyToClipboard = new Button(compositeButtons, SWT.NONE);
-        btnCopyToClipboard.setToolTipText("Copies the generated password to the clipboard and then based on the combobox next to the button:\r\n\r\n\"erase clipboard in\"\r\nClears the clipboard after X seconds.\r\n\r\n\"close PasswordMakerJE in\"\r\nSame thing as above but also closes PasswordMakerJE after X seconds.");
+        btnCopyToClipboard
+                .setToolTipText("Copies the generated password to the clipboard and then based on the combobox next to the button:\r\n\r\n\"erase clipboard in\"\r\nClears the clipboard after X seconds.\r\n\r\n\"close PasswordMakerJE in\"\r\nSame thing as above but also closes PasswordMakerJE after X seconds.");
         btnCopyToClipboard.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -675,40 +712,48 @@ public class GuiMain implements DatabaseListener {
             }
         });
         btnCopyToClipboard.setText("Copy to clipboard, then");
-        
+
         comboCopyBehavior = new Combo(compositeButtons, SWT.READ_ONLY);
         comboCopyBehavior.setToolTipText("");
-        comboCopyBehavior.setItems(new String[] {"erase clipboard in", "close app and erase clipboard in"});
-        comboCopyBehavior.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        comboCopyBehavior.setItems(new String[] { "erase clipboard in",
+                "close app and erase clipboard in" });
+        comboCopyBehavior.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
+                true, false, 1, 1));
         comboCopyBehavior.select(0);
-        
+
         editCopySeconds = new Text(compositeButtons, SWT.BORDER);
         editCopySeconds.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent arg0) {
                 onSecondsFocusLost();
             }
+
             @Override
             public void focusGained(FocusEvent arg0) {
-                ((Text)(arg0.widget)).selectAll();
+                ((Text) (arg0.widget)).selectAll();
             }
         });
         editCopySeconds.setText("5");
-        GridData gd_editCloseSeconds = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        GridData gd_editCloseSeconds = new GridData(SWT.LEFT, SWT.CENTER,
+                false, false, 1, 1);
         gd_editCloseSeconds.widthHint = 33;
         editCopySeconds.setLayoutData(gd_editCloseSeconds);
-        
-        secondsDecoration = new ControlDecoration(editCopySeconds, SWT.LEFT | SWT.TOP);
-        secondsDecoration.setDescriptionText("The number of seconds must be a positive value");
-        
+
+        secondsDecoration = new ControlDecoration(editCopySeconds, SWT.LEFT
+                | SWT.TOP);
+        secondsDecoration
+                .setDescriptionText("The number of seconds must be a positive value");
+
         Label lblSeconds = new Label(compositeButtons, SWT.NONE);
-        lblSeconds.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        lblSeconds.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+                false, 1, 1));
         lblSeconds.setText("seconds");
-        
+
         accountTreeViewer = new TreeViewer(grpAccounts, SWT.BORDER);
         accountTree = accountTreeViewer.getTree();
-        accountTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-        
+        accountTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,
+                1, 1));
+
         Menu menu = new Menu(accountTree);
         menu.addMenuListener(new MenuAdapter() {
             @Override
@@ -717,7 +762,7 @@ public class GuiMain implements DatabaseListener {
             }
         });
         accountTree.setMenu(menu);
-        
+
         menuItemNewAccount = new MenuItem(menu, SWT.NONE);
         menuItemNewAccount.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -725,20 +770,21 @@ public class GuiMain implements DatabaseListener {
                 onNewAccountSelected();
             }
         });
-        menuItemNewAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/key_add.png"));
+        menuItemNewAccount.setImage(SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/key_add.png"));
         menuItemNewAccount.setText("&New Account");
-        
+
         menuItemEditAccount = new MenuItem(menu, SWT.NONE);
         menuItemEditAccount.addSelectionListener(new SelectionAdapter() {
-        	@Override
-        	public void widgetSelected(SelectionEvent arg0) {
-        		onEditAccount();
-        	}
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                onEditAccount();
+            }
         });
         menuItemEditAccount.setText("&Edit Account");
-        
+
         new MenuItem(menu, SWT.SEPARATOR);
-        
+
         menuItemNewGroup = new MenuItem(menu, SWT.NONE);
         menuItemNewGroup.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -746,9 +792,10 @@ public class GuiMain implements DatabaseListener {
                 onNewGroupSelected();
             }
         });
-        menuItemNewGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/folder_add.png"));
+        menuItemNewGroup.setImage(SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/folder_add.png"));
         menuItemNewGroup.setText("New Group");
-        
+
         menuItemEditGroup = new MenuItem(menu, SWT.NONE);
         menuItemEditGroup.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -757,11 +804,12 @@ public class GuiMain implements DatabaseListener {
             }
         });
         menuItemEditGroup.setText("Edit Group");
-        
+
         MenuItem menuItem = new MenuItem(menu, SWT.SEPARATOR);
-        
+
         menuItemSort = new MenuItem(menu, SWT.NONE);
-        menuItemSort.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/sort_ascend.png"));
+        menuItemSort.setImage(SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/sort_ascend.png"));
         menuItemSort.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
@@ -769,9 +817,9 @@ public class GuiMain implements DatabaseListener {
             }
         });
         menuItemSort.setText("Sort");
-        
+
         new MenuItem(menu, SWT.SEPARATOR);
-        
+
         menuItemDeleteAccount = new MenuItem(menu, SWT.NONE);
         menuItemDeleteAccount.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -779,9 +827,11 @@ public class GuiMain implements DatabaseListener {
                 onDeleteAccount();
             }
         });
-        menuItemDeleteAccount.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/key_delete.png"));
+        menuItemDeleteAccount.setImage(SWTResourceManager.getImage(
+                GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/key_delete.png"));
         menuItemDeleteAccount.setText("&Delete Account");
-        
+
         menuItemDeleteGroup = new MenuItem(menu, SWT.NONE);
         menuItemDeleteGroup.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -789,12 +839,13 @@ public class GuiMain implements DatabaseListener {
                 onDeleteAccount();
             }
         });
-        menuItemDeleteGroup.setImage(SWTResourceManager.getImage(GuiMain.class, "/org/daveware/passwordmakerapp/icons/folder_delete.png"));
+        menuItemDeleteGroup.setImage(SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/folder_delete.png"));
         menuItemDeleteGroup.setText("Delete Group");
-        
+
         menu_1 = new Menu(shlPasswordMaker, SWT.BAR);
         shlPasswordMaker.setMenuBar(menu_1);
-        
+
         mntmFile = new MenuItem(menu_1, SWT.CASCADE);
         mntmFile.addArmListener(new ArmListener() {
             public void widgetArmed(ArmEvent arg0) {
@@ -802,10 +853,10 @@ public class GuiMain implements DatabaseListener {
             }
         });
         mntmFile.setText("&File");
-        
+
         menu_3 = new Menu(mntmFile);
         mntmFile.setMenu(menu_3);
-        
+
         menuItemNew = new MenuItem(menu_3, SWT.NONE);
         menuItemNew.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -813,13 +864,13 @@ public class GuiMain implements DatabaseListener {
                 newFile();
             }
         });
-        
+
         int specialKey = Utilities.isMac() ? SWT.COMMAND : SWT.CTRL;
-        String specialKeyStr = Utilities.isMac() ? "\tCommand+" : "\tCtrl+"; 
+        String specialKeyStr = Utilities.isMac() ? "\tCommand+" : "\tCtrl+";
 
         menuItemNew.setText("New Database\tCtrl+N");
         menuItemNew.setAccelerator(specialKey + 'N');
-        
+
         menuItemOpen = new MenuItem(menu_3, SWT.NONE);
         menuItemOpen.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -829,7 +880,7 @@ public class GuiMain implements DatabaseListener {
         });
         menuItemOpen.setText("Open Database\tCtrl+O");
         menuItemOpen.setAccelerator(specialKey + 'O');
-        
+
         menuItemSave = new MenuItem(menu_3, SWT.NONE);
         menuItemSave.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -839,7 +890,7 @@ public class GuiMain implements DatabaseListener {
         });
         menuItemSave.setText("Save Database\tCtrl+S");
         menuItemSave.setAccelerator(specialKey + 'S');
-        
+
         menuItemSaveAs = new MenuItem(menu_3, SWT.NONE);
         menuItemSaveAs.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -848,9 +899,9 @@ public class GuiMain implements DatabaseListener {
             }
         });
         menuItemSaveAs.setText("Save Database As");
-        
+
         new MenuItem(menu_3, SWT.SEPARATOR);
-        
+
         menuItemExit = new MenuItem(menu_3, SWT.NONE);
         menuItemExit.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -859,251 +910,260 @@ public class GuiMain implements DatabaseListener {
             }
         });
         menuItemExit.setText("Exit");
-        
+
         mntmhelp = new MenuItem(menu_1, SWT.CASCADE);
         mntmhelp.setText("&Help");
-        
+
         menu_2 = new Menu(mntmhelp);
         mntmhelp.setMenu(menu_2);
-        
+
         mntmabout = new MenuItem(menu_2, SWT.NONE);
         mntmabout.addSelectionListener(new SelectionAdapter() {
-        	@Override
-        	public void widgetSelected(SelectionEvent arg0) {
-        		AboutDlg dlg = new AboutDlg(shlPasswordMaker, SWT.SHEET);
-        		dlg.open();
-        	}
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                AboutDlg dlg = new AboutDlg(shlPasswordMaker, SWT.SHEET);
+                dlg.open();
+            }
         });
         mntmabout.setText("&About PasswordMakerJE");
-        shlPasswordMaker.setTabList(new Control[]{grpInput, grpAccounts, sash});
+        shlPasswordMaker
+                .setTabList(new Control[] { grpInput, grpAccounts, sash });
     }
 
     /******************************
      * Below here is my stuff.
      */
-    
+
     /**
      * Copies the currently generated password to the clipboard.
      */
     private void copyGeneratedToClipboard() {
         SecureCharArray generated = null;
-        
+
         try {
             generated = generateOutput();
             Utilities.copyToClipboard(generated);
-        }
-        catch(Exception e) {}
-        finally {
-            if(generated!=null)
+        } catch (Exception e) {
+        } finally {
+            if (generated != null)
                 generated.erase();
         }
     }
-    
+
     /**
      * Locates the current account based on information in the config.
+     * 
      * @return 0 if found, else non-zero.
      */
     public int findAccountByUrl() {
-        // Url search gets disabled when manually setting the value of the editUrlSearch widget,
+        // Url search gets disabled when manually setting the value of the
+        // editUrlSearch widget,
         // otherwise it invokes this function
-        if(!urlSearchEnabled)
+        if (!urlSearchEnabled)
             return 0;
-        
+
         int ret = 1;
 
         Account acc = null;
         String matchUrl = editUrlSearch.getText();
-        
+
         try {
             acc = db.findAccountByUrl(matchUrl);
-            if(acc!=null)
+            if (acc != null)
                 accountTreeViewer.setSelection(new StructuredSelection(acc));
             else
                 accountTreeViewer.setSelection(null);
-            //selectAccount(acc);
+            // selectAccount(acc);
             ret = 0;
-        }
-        catch(Exception e) {
-            MBox.showError(shlPasswordMaker, "Unable to locate account based on URL.\n" + e.getMessage());
+        } catch (Exception e) {
+            MBox.showError(shlPasswordMaker,
+                    "Unable to locate account based on URL.\n" + e.getMessage());
             ret = 1;
         }
-        
+
         return ret;
     }
-    
+
     /**
      * Exits (disposes) this shell, prompting if db is dirty.
      */
     private void exit() {
-        if(db.isDirty()) {
-            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+        if (db.isDirty()) {
+            switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
             case SWT.YES:
-                if(saveFile()==false)
+                if (saveFile() == false)
                     return;
                 break;
-                
+
             case SWT.NO:
                 break;
-                
+
             case SWT.CANCEL:
                 return;
             }
         }
-        
+
         shlPasswordMaker.dispose();
     }
 
     /**
      * Generates the password and returns it.
+     * 
      * @return A SecureCharArray object with the generated password.
      */
     private SecureCharArray generateOutput() {
         SecureCharArray mpw = null;
         SecureCharArray output = null;
-        
+
         try {
-        	if(selectedAccount!=null) {
-                // If the username text has been edited by the user then it will need to be updated
-                // in the account. But since the account shouldn't be saved that way, use a temporary
+            if (selectedAccount != null) {
+                // If the username text has been edited by the user then it will
+                // need to be updated
+                // in the account. But since the account shouldn't be saved that
+                // way, use a temporary
                 // account.
                 Account tempAccount = new Account();
                 tempAccount.copySettings(selectedAccount);
                 tempAccount.setUsername(editUsername.getText());
                 tempAccount.setId(selectedAccount.getId());
                 tempAccount.setUrl(editUrl.getText());
-                
-        		mpw = new SecureCharArray(editMP.getText());
-        		
+
+                mpw = new SecureCharArray(editMP.getText());
+
                 output = pwm.makePassword(mpw, tempAccount);
-        	}
-        	else {
-        		output = new SecureCharArray();
-        	}
+            } else {
+                output = new SecureCharArray();
+            }
+        } catch (Exception e) {
+        } finally {
+            if (mpw != null)
+                mpw.erase();
         }
-        catch(Exception e) {}
-        finally {
-        	if(mpw!=null)
-        		mpw.erase();
-        }
-        
+
         return output;
     }
-    
-    
+
     /**
-     * Creates and returns a thread which will countdown from whatever the current countdown value is.
-     * @param b The button to set the number of seconds left to.
+     * Creates and returns a thread which will countdown from whatever the
+     * current countdown value is.
+     * 
+     * @param b
+     *            The button to set the number of seconds left to.
      * @return The created thread.
      */
     private Thread getCountdownThread(Text text, int numSeconds) {
         final Text textControl = text;
         final int countdownValue = numSeconds;
-        
+
         return new Thread() {
             public void run() {
                 try {
-                    // This is kinda dirty. A 'final' integer needs to be used inside the anonymous class
+                    // This is kinda dirty. A 'final' integer needs to be used
+                    // inside the anonymous class
                     // so currentI is created each iteration. Gross.
-                    for(int i=0; i<countdownValue; ++i) {
+                    for (int i = 0; i < countdownValue; ++i) {
                         final int currentI = i;
                         display.asyncExec(new Runnable() {
                             public void run() {
-                                textControl.setText(Integer.toString(countdownValue-currentI));
+                                textControl.setText(Integer
+                                        .toString(countdownValue - currentI));
                             }
                         });
                         Thread.sleep(1000);
                     }
-                }catch(Exception e) {}
-                
+                } catch (Exception e) {
+                }
+
                 display.asyncExec(new Runnable() {
                     public void run() {
                         Utilities.clearClipboard();
-                        
-                        if(closeAfterTimer==true)
-                        	shlPasswordMaker.dispose();
+
+                        if (closeAfterTimer == true)
+                            shlPasswordMaker.dispose();
                         else {
-                        	btnCopyToClipboard.setEnabled(true);
-                        	comboCopyBehavior.setEnabled(true);
-                        	editCopySeconds.setEnabled(true);
-                        	editCopySeconds.setText(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+                            btnCopyToClipboard.setEnabled(true);
+                            comboCopyBehavior.setEnabled(true);
+                            editCopySeconds.setEnabled(true);
+                            editCopySeconds.setText(db
+                                    .getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
                         }
                     }
                 });
             }
         };
     }
-    
+
     /**
      * Sets the various fields of the GUI based on the settings in the database.
      */
     private void setGuiFromGlobalSettings() {
-        editCopySeconds.setText(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
-        btnShowPassword.setSelection(db.getGlobalSetting(GlobalSettingKey.SHOW_GEN_PW).compareTo("true")==0);
-        onShowPasswordClicked();  // due to manual "setSelection" not triggering an event
+        editCopySeconds.setText(db
+                .getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+        btnShowPassword.setSelection(db.getGlobalSetting(
+                GlobalSettingKey.SHOW_GEN_PW).compareTo("true") == 0);
+        onShowPasswordClicked(); // due to manual "setSelection" not triggering
+                                 // an event
     }
-    
+
     private boolean loadPredefinedLocations() {
         // Scan the current directory looking for anything ending in ".rdf"
         try {
             String curDir = System.getProperty("user.dir");
-            if(curDir!=null) {
+            if (curDir != null) {
                 File curDirFile = new File(curDir);
-                File [] filelist = curDirFile.listFiles(new FileFilter() {
-                    
+                File[] filelist = curDirFile.listFiles(new FileFilter() {
+
                     @Override
                     public boolean accept(File pathname) {
                         return pathname.getAbsolutePath().endsWith(".rdf");
                     }
                 });
-                
-                for(File f : filelist) {
-                    if(openFile(f.getAbsolutePath(), true))
+
+                for (File f : filelist) {
+                    if (openFile(f.getAbsolutePath(), true))
                         return true;
                 }
             }
-        } catch(Exception e) {
-            
+        } catch (Exception e) {
+
         }
-        
+
         // Now try the known home-directory files
         try {
-            String [] locations = {
-                    "passwordmaker.rdf",
-                    "pwmje.rdf",
-                    ".pwmje.rdf",
-                    ".passwordmakerrc",
-            };
+            String[] locations = { "passwordmaker.rdf", "pwmje.rdf",
+                    ".pwmje.rdf", ".passwordmakerrc", };
             String home = System.getProperty("user.home");
-            if(home!=null) {
-                for(String pathPiece : locations) {
+            if (home != null) {
+                for (String pathPiece : locations) {
                     String fullPath = home + File.separator + pathPiece;
-                    if(openFile(fullPath, true)==true) {
+                    if (openFile(fullPath, true) == true) {
                         return true;
                     }
                 }
             }
-        } catch(Exception e) {
-            
+        } catch (Exception e) {
+
         }
         return false;
     }
-    
+
     /**
      * Loads the various fields with data from the config files.
      */
     private void loadFromCmdLineSettings() {
-        if(cmdLineSettings.matchUrl!=null)
-        	editUrlSearch.setText(cmdLineSettings.matchUrl);
-        if(cmdLineSettings.inputFilename!=null) {
+        if (cmdLineSettings.matchUrl != null)
+            editUrlSearch.setText(cmdLineSettings.matchUrl);
+        if (cmdLineSettings.inputFilename != null) {
             openFile(cmdLineSettings.inputFilename, false);
-        }
-        else {
-            if(loadPredefinedLocations()==false)
+        } else {
+            if (loadPredefinedLocations() == false)
                 newFile();
         }
-        
-        // Only attempt an initial find if something was passed on the commandline
-        if(cmdLineSettings.matchUrl!=null && cmdLineSettings.matchUrl.length()>0)
+
+        // Only attempt an initial find if something was passed on the
+        // commandline
+        if (cmdLineSettings.matchUrl != null
+                && cmdLineSettings.matchUrl.length() > 0)
             findAccountByUrl();
     }
 
@@ -1111,57 +1171,65 @@ public class GuiMain implements DatabaseListener {
      * Sets the title of the window based on the current data state.
      */
     private void setTitle() {
-        String title = (currentFilename.trim().length()==0 ? "Untitled" : currentFilename) + " - " + 
-                        TITLE_STRING + " - " + buildInfo.getVersion();
+        String title = (currentFilename.trim().length() == 0 ? "Untitled"
+                : currentFilename)
+                + " - "
+                + TITLE_STRING
+                + " - "
+                + buildInfo.getVersion();
         String dirty = " ";
-        if(db!=null && db.isDirty())
+        if (db != null && db.isDirty())
             dirty = "* ";
         shlPasswordMaker.setText(dirty + title);
     }
 
-
     /**
-     * Creates a new blank(sorta) database. This will attempt to save first if the current
-     * database is dirty and abort the new file operation if the save fails.
+     * Creates a new blank(sorta) database. This will attempt to save first if
+     * the current database is dirty and abort the new file operation if the
+     * save fails.
+     * 
      * @return
      */
     private boolean newFile() {
-        if(db!=null && db.isDirty()) {
-            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+        if (db != null && db.isDirty()) {
+            switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
             case SWT.YES:
-                // Attempt to save the file, if that fails then abort the new file operation
-                if(saveFile()==false)
+                // Attempt to save the file, if that fails then abort the new
+                // file operation
+                if (saveFile() == false)
                     return false;
                 break;
-                
+
             case SWT.NO:
                 break;
-                
+
             case SWT.CANCEL:
                 return false;
             }
         }
-        
+
         db = new Database();
         db.addDatabaseListener(this);
         accountTreeViewer.setInput(db);
-    
+
         try {
             db.addDefaultAccount();
-            
-            // TODO: This 2nd "setInput" is to work around a problem with the DatabaseListener not getting
+
+            // TODO: This 2nd "setInput" is to work around a problem with the
+            // DatabaseListener not getting
             // messages - I'm not exactly sure why.
             accountTreeViewer.setInput(db);
             selectFirstAccount();
             setGuiFromGlobalSettings();
             db.setDirty(false);
-        } catch(Exception e) {
+        } catch (Exception e) {
             // This REALLY should be impossible ... but, handle it anyway
-            MBox.showError(shlPasswordMaker, "Unable to create default account.\n" + e.getMessage());
+            MBox.showError(shlPasswordMaker,
+                    "Unable to create default account.\n" + e.getMessage());
         }
-        
+
         selectFirstAccount();
-    
+
         return true;
     }
 
@@ -1169,57 +1237,56 @@ public class GuiMain implements DatabaseListener {
      * Handles when focus is gained on the accountFilter text box.
      */
     private void onAccountFilterTextFocusGained() {
-    	String text = accountFilterText.getText();
-    	
-    	if(text.compareTo(ACCOUNT_FILTER_DESC)==0)
-    		accountFilterText.setText("");
-    	
-    	/* Clear the italics */
-    	accountFilterText.setFont(regularSearchFont);
-    
-    	filterIcon.setVisible(false);
-    	
-    	accountFilterText.selectAll();
+        String text = accountFilterText.getText();
+
+        if (text.compareTo(ACCOUNT_FILTER_DESC) == 0)
+            accountFilterText.setText("");
+
+        /* Clear the italics */
+        accountFilterText.setFont(regularSearchFont);
+
+        filterIcon.setVisible(false);
+
+        accountFilterText.selectAll();
     }
 
     /**
      * Handles when focus is lost from the accountFilter text box.
      */
     private void onAccountFilterTextFocusLost() {
-    	String text = accountFilterText.getText();
-    	if(text.length()==0) {
-    		accountFilterText.setText(ACCOUNT_FILTER_DESC);
-        	accountFilterText.setFont(italicsSearchFont);
-        	filterIcon.setImage(searchImage);
-    	}
-    	else {
-        	accountFilterText.setFont(regularSearchFont);
-    		filterIcon.setImage(cancelImage);
-    	}
-    	filterIcon.setVisible(true);
+        String text = accountFilterText.getText();
+        if (text.length() == 0) {
+            accountFilterText.setText(ACCOUNT_FILTER_DESC);
+            accountFilterText.setFont(italicsSearchFont);
+            filterIcon.setImage(searchImage);
+        } else {
+            accountFilterText.setFont(regularSearchFont);
+            filterIcon.setImage(cancelImage);
+        }
+        filterIcon.setVisible(true);
     }
 
     /**
      * Invoked when the account menu is about to be shown.
      */
     private void onAccountMenuShown() {
-        if(selectedAccount!=null) {
-            if(selectedAccount.isFolder()) {
+        if (selectedAccount != null) {
+            if (selectedAccount.isFolder()) {
                 menuItemEditGroup.setEnabled(true);
                 menuItemDeleteGroup.setEnabled(true);
                 menuItemEditAccount.setEnabled(false);
                 menuItemDeleteAccount.setEnabled(false);
                 menuItemSort.setEnabled(true);
-            }
-            else {
+            } else {
                 menuItemEditGroup.setEnabled(false);
                 menuItemDeleteGroup.setEnabled(false);
                 menuItemEditAccount.setEnabled(true);
-                menuItemDeleteAccount.setEnabled(selectedAccount.isDefault()==false && selectedAccount.isRoot()==false);
+                menuItemDeleteAccount
+                        .setEnabled(selectedAccount.isDefault() == false
+                                && selectedAccount.isRoot() == false);
                 menuItemSort.setEnabled(true);
             }
-        }
-        else {
+        } else {
             menuItemEditGroup.setEnabled(false);
             menuItemDeleteGroup.setEnabled(false);
             menuItemEditAccount.setEnabled(false);
@@ -1230,135 +1297,144 @@ public class GuiMain implements DatabaseListener {
 
     /**
      * Method invoked when the copy-and-exit button is clicked.
-     * @param btn The button clicked.
+     * 
+     * @param btn
+     *            The button clicked.
      */
     private void onCopyToClipboard() {
-        // First make sure the seconds-value is valid. If not, set it to 5 and carry on.
+        // First make sure the seconds-value is valid. If not, set it to 5 and
+        // carry on.
         int seconds;
-        
-        closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false : true;
-        
+
+        closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false
+                : true;
+
         // Perform a dirty check if the app will close after the operation
-        if(closeAfterTimer && db.isDirty()) {
-            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+        if (closeAfterTimer && db.isDirty()) {
+            switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
             case SWT.YES:
                 // Only continue if the save succeeded
-                if(saveFile()!=true)
+                if (saveFile() != true)
                     return;
                 break;
-                
+
             case SWT.NO:
                 break;
-                
+
             case SWT.CANCEL:
                 // user aborted
                 return;
             }
         }
-        
+
         try {
             seconds = Integer.parseInt(editCopySeconds.getText());
-            if(seconds<1) {
+            if (seconds < 1) {
                 secondsDecoration.show();
                 editCopySeconds.setFocus();
                 return;
             }
-            
+
             secondsDecoration.hide();
-        }
-        catch(Exception ee) {
+        } catch (Exception ee) {
             secondsDecoration.show();
             editCopySeconds.setFocus();
             return;
         }
-        
+
         btnCopyToClipboard.setEnabled(false);
         editCopySeconds.setEnabled(false);
         comboCopyBehavior.setEnabled(false);
-        
+
         copyGeneratedToClipboard();
         Thread thread = getCountdownThread(editCopySeconds, seconds);
-        if(thread!=null)
+        if (thread != null)
             thread.start();
     }
-    
+
     /**
      * Handles the deletion of the selected account.
      */
     private void onDeleteAccount() {
-        if(selectedAccount==null) {
-            MBox.showError(shlPasswordMaker, "No account is selected for deletion, this should not be possible. Please file a bug report.");
+        if (selectedAccount == null) {
+            MBox.showError(
+                    shlPasswordMaker,
+                    "No account is selected for deletion, this should not be possible. Please file a bug report.");
             return;
         }
-            
+
         String type = selectedAccount.isFolder() ? "folder" : "account";
-        String msg = "Are you sure you wish to delete " + type + " '" + selectedAccount.getName() + "'";
+        String msg = "Are you sure you wish to delete " + type + " '"
+                + selectedAccount.getName() + "'";
         int numChildren = selectedAccount.getNestedChildCount();
-        if(numChildren>0)
+        if (numChildren > 0)
             msg += " and it's " + numChildren + " children?";
         else
             msg += "?";
-        
-        if(MBox.showYesNo(shlPasswordMaker, msg)==SWT.YES) {
+
+        if (MBox.showYesNo(shlPasswordMaker, msg) == SWT.YES) {
             Account nearestRelative = db.findNearestRelative(selectedAccount);
             db.removeAccount(selectedAccount);
-            if(nearestRelative==null)
+            if (nearestRelative == null)
                 accountTreeViewer.setSelection(null);
             else
-                accountTreeViewer.setSelection(new StructuredSelection(nearestRelative));
+                accountTreeViewer.setSelection(new StructuredSelection(
+                        nearestRelative));
         }
     }
 
     private void onCloseWindow(Event e) {
-        if(db.isDirty()==true) {
-            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+        if (db.isDirty() == true) {
+            switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
             case SWT.YES:
-                if(saveFile()==true) {
+                if (saveFile() == true) {
                     e.doit = true;
                 }
                 break;
-                 
+
             case SWT.NO:
                 e.doit = true;
                 break;
-                
+
             case SWT.CANCEL:
                 e.doit = false;
                 break;
-                
+
             default:
                 e.doit = true;
                 break;
             }
         }
     }
-    
+
     /**
      * Invoked when the shell is being disposed (closed).
-     * @param arg0 The dispose event.
+     * 
+     * @param arg0
+     *            The dispose event.
      */
     private void onDisposing(DisposeEvent arg0) {
-        if(passwordImage!=null)
+        if (passwordImage != null)
             passwordImage.dispose();
-        if(searchImage!=null)
-        	searchImage.dispose();
-        if(cancelImage!=null)
-        	cancelImage.dispose();
-        if(eyeImage!=null)
-        	eyeImage.dispose();
-        if(eyeClosedImage!=null)
-        	eyeClosedImage.dispose();
-        if(passwordFont!=null)
-        	passwordFont.dispose();
-        if(regularSearchFont!=null)
-        	regularSearchFont.dispose();
-        if(italicsSearchFont!=null)
-        	italicsSearchFont.dispose();
-        if(accountTreeModel!=null)
-        	accountTreeModel.dispose();
-        if(accountTreeLabelProvider!=null)
-        	accountTreeLabelProvider.dispose();
-        
+        if (searchImage != null)
+            searchImage.dispose();
+        if (cancelImage != null)
+            cancelImage.dispose();
+        if (eyeImage != null)
+            eyeImage.dispose();
+        if (eyeClosedImage != null)
+            eyeClosedImage.dispose();
+        if (passwordFont != null)
+            passwordFont.dispose();
+        if (regularSearchFont != null)
+            regularSearchFont.dispose();
+        if (italicsSearchFont != null)
+            italicsSearchFont.dispose();
+        if (accountTreeModel != null)
+            accountTreeModel.dispose();
+        if (accountTreeLabelProvider != null)
+            accountTreeLabelProvider.dispose();
+
         passwordImage = null;
         searchImage = null;
         cancelImage = null;
@@ -1368,37 +1444,41 @@ public class GuiMain implements DatabaseListener {
         accountTreeModel = null;
         accountTreeLabelProvider = null;
     }
-    
+
     /**
      * Handles editing an account.
      */
     private void onEditAccount() {
-    	AccountDlg dlg = null;
-    	SecureCharArray mpw = null;
-    	if(selectedAccount!=null) {
-    	    try {
-        	    mpw = new SecureCharArray(editMP.getText());
-        		dlg = new AccountDlg(selectedAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
-    		
-        		// A copy of the edited account is returned if "ok" is clicked.
-        		Account newAccount = dlg.open();
-        		if(newAccount!=null) {
-        		    selectedAccount.copySettings(newAccount);
-        		    db.changeAccount(selectedAccount);
-        		    //accountTreeViewer.refresh(account, true);
-        		    
-        		    // The tree already has the account selected. Applying the same selection actually
-        		    // has the side-effect of unselecting the account. So instead just invoke the selectAccount()
-        		    // method which is normally invoked by the tree causing the selection.
-        		    selectAccount(selectedAccount);
-        		}
+        AccountDlg dlg = null;
+        SecureCharArray mpw = null;
+        if (selectedAccount != null) {
+            try {
+                mpw = new SecureCharArray(editMP.getText());
+                dlg = new AccountDlg(selectedAccount, mpw, passwordFont, pwm,
+                        eyeImage, eyeClosedImage, showPassword);
+
+                // A copy of the edited account is returned if "ok" is clicked.
+                Account newAccount = dlg.open();
+                if (newAccount != null) {
+                    selectedAccount.copySettings(newAccount);
+                    db.changeAccount(selectedAccount);
+                    // accountTreeViewer.refresh(account, true);
+
+                    // The tree already has the account selected. Applying the
+                    // same selection actually
+                    // has the side-effect of unselecting the account. So
+                    // instead just invoke the selectAccount()
+                    // method which is normally invoked by the tree causing the
+                    // selection.
+                    selectAccount(selectedAccount);
+                }
             } finally {
-                if(mpw!=null) {
+                if (mpw != null) {
                     mpw.erase();
                     mpw = null;
                 }
             }
-    	}
+        }
     }
 
     /**
@@ -1407,84 +1487,96 @@ public class GuiMain implements DatabaseListener {
     private void onFileMenuArmed() {
         menuItemSave.setEnabled(db.isDirty());
     }
-    
-    /**
-     * Invoked when the filter composite is resized so that the text box and filter 
-     * icon can be re-aligned.
-     * @param arg0 The composite-resize event.
-     */
-	private void onFilterCompositeResized(ControlEvent arg0) {
-		Composite frame = (Composite)arg0.widget;
-		accountFilterText.setSize(frame.getSize());
-		filterIcon.setLocation(frame.getSize().x - filterIcon.getSize().x - 1, 1);
-	}
 
-	/**
+    /**
+     * Invoked when the filter composite is resized so that the text box and
+     * filter icon can be re-aligned.
+     * 
+     * @param arg0
+     *            The composite-resize event.
+     */
+    private void onFilterCompositeResized(ControlEvent arg0) {
+        Composite frame = (Composite) arg0.widget;
+        accountFilterText.setSize(frame.getSize());
+        filterIcon.setLocation(frame.getSize().x - filterIcon.getSize().x - 1,
+                1);
+    }
+
+    /**
      * Handles when the X is clicked in the accountFilterText widget.
      * 
      * This will reset the text/image/font back to defaults.
      */
     private void onFilterIconClicked() {
-    	accountFilterText.setText(ACCOUNT_FILTER_DESC);
-    	accountFilterText.setFont(italicsSearchFont);
-    	filterIcon.setImage(searchImage);
-    	filterIcon.setVisible(true);
-    	isFiltering = false;
+        accountFilterText.setText(ACCOUNT_FILTER_DESC);
+        accountFilterText.setFont(italicsSearchFont);
+        filterIcon.setImage(searchImage);
+        filterIcon.setVisible(true);
+        isFiltering = false;
     }
-    
+
     /**
      * Invoked when the filter text is modified.
-     * @param e The modification event.
+     * 
+     * @param e
+     *            The modification event.
      */
     private void onFilterModified(ModifyEvent e) {
-    	String text = accountFilterText.getText();
-    	if(text.compareTo(ACCOUNT_FILTER_DESC)==0 || text.length()==0) {
-    		isFiltering = false;
-    	}
-    	else {
-    		isFiltering = true;
-    	}
-    	
-    	if(accountTreeViewer!=null) {
-    		accountTreeViewer.refresh();
-    		if(text.length()>0) {
-    		    accountTreeViewer.expandAll();
-    		    selectFirstLeafAccount();
-    		}
-    	}
+        String text = accountFilterText.getText();
+        if (text.compareTo(ACCOUNT_FILTER_DESC) == 0 || text.length() == 0) {
+            isFiltering = false;
+        } else {
+            isFiltering = true;
+        }
+
+        if (accountTreeViewer != null) {
+            accountTreeViewer.refresh();
+            if (text.length() > 0) {
+                accountTreeViewer.expandAll();
+                selectFirstLeafAccount();
+            }
+        }
     }
-    
+
     /**
-     * Selects the first available account that is not a folder, eg a leaf node. It
-     * takes into consideration filtering rules.
+     * Selects the first available account that is not a folder, eg a leaf node.
+     * It takes into consideration filtering rules.
      */
     private void selectFirstLeafAccount() {
-        // This is a gross hack that doesn't operate on what accountTreeViewer tells us, and that's
-        // because I can't for the life of me figure out how to get it to tell me what leaf nodes
-        // are visible.  I *hate* SWT's documentation.
+        // This is a gross hack that doesn't operate on what accountTreeViewer
+        // tells us, and that's
+        // because I can't for the life of me figure out how to get it to tell
+        // me what leaf nodes
+        // are visible. I *hate* SWT's documentation.
         //
-        // This is  inefficient as it is walking the entire account database tree looking
-        // for nodes that match the text, essentially re-filtering. If anyone sees this and knows
+        // This is inefficient as it is walking the entire account database tree
+        // looking
+        // for nodes that match the text, essentially re-filtering. If anyone
+        // sees this and knows
         // how to get at the filtered data, please let me know.
-    	
-    	// For some reason only on OSX, selectFirstLeafAccount() gets called before the database
-    	// is ever created.  So...
-    	if(db==null)
-    		return;
-    	
+
+        // For some reason only on OSX, selectFirstLeafAccount() gets called
+        // before the database
+        // is ever created. So...
+        if (db == null)
+            return;
+
         String filterText = accountFilterText.getText().toLowerCase();
         ArrayList<Account> parentStack = new ArrayList<Account>();
         parentStack.add(db.getRootAccount());
-        
-        while(parentStack.size()>0) {
+
+        while (parentStack.size() > 0) {
             Account parentAccount = parentStack.remove(0);
-            
-            for(Account child : parentAccount.getChildren()) {
-                if(child.isFolder())
+
+            for (Account child : parentAccount.getChildren()) {
+                if (child.isFolder())
                     parentStack.add(child);
                 else {
-                    if(filterText.length()==0 || child.getName().toLowerCase().contains(filterText)) {
-                        accountTreeViewer.setSelection(new StructuredSelection(child));
+                    if (filterText.length() == 0
+                            || child.getName().toLowerCase()
+                                    .contains(filterText)) {
+                        accountTreeViewer.setSelection(new StructuredSelection(
+                                child));
                         return;
                     }
                 }
@@ -1492,25 +1584,30 @@ public class GuiMain implements DatabaseListener {
         }
     }
 
-    
     private void onNewAccountSelected() {
         Account parentAccount = null;
         AccountDlg dlg = null;
-        
+
         // If no account is selected, then default to the root
-        if(selectedAccount==null)
+        if (selectedAccount == null)
             parentAccount = db.getRootAccount();
         else {
-            // Otherwise decide if it will be a sibling of the selected account or a child
+            // Otherwise decide if it will be a sibling of the selected account
+            // or a child
             // of the selected group.
             parentAccount = selectedAccount;
-            
-            // If the parent is not a folder, it needs to be created as a sibling. So locate
+
+            // If the parent is not a folder, it needs to be created as a
+            // sibling. So locate
             // who the real parent is.
-            if(parentAccount.isFolder()==false) {
+            if (parentAccount.isFolder() == false) {
                 parentAccount = db.findParent(parentAccount);
-                if(parentAccount==null) {
-                    MBox.showError(shlPasswordMaker, "Unable to locate parent account of '" + selectedAccount.getName() + "' id=" + selectedAccount.getId() +", cannot add new account.");
+                if (parentAccount == null) {
+                    MBox.showError(shlPasswordMaker,
+                            "Unable to locate parent account of '"
+                                    + selectedAccount.getName() + "' id="
+                                    + selectedAccount.getId()
+                                    + ", cannot add new account.");
                     return;
                 }
             }
@@ -1520,40 +1617,50 @@ public class GuiMain implements DatabaseListener {
         Account newAccount = new Account();
         SecureCharArray mpw = new SecureCharArray(editMP.getText());
         try {
-            dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
-            
+            dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage,
+                    eyeClosedImage, showPassword);
+
             // A copy of the account is returned if "ok" is clicked.
             newAccount = dlg.open();
-            if(newAccount!=null) {
+            if (newAccount != null) {
                 newAccount.setId(Account.createId(newAccount));
                 db.addAccount(parentAccount, newAccount);
-            } 
-        } catch(Exception e) {
-                MBox.showError(shlPasswordMaker, "While creating the new account, an error occurred. You should save your work to a new file and restart.\n" + e.getMessage());
+            }
+        } catch (Exception e) {
+            MBox.showError(
+                    shlPasswordMaker,
+                    "While creating the new account, an error occurred. You should save your work to a new file and restart.\n"
+                            + e.getMessage());
         } finally {
-                mpw.erase();
-                mpw = null;
+            mpw.erase();
+            mpw = null;
         }
     }
-    
+
     private void onNewGroupSelected() {
         Account parentAccount = null;
         AccountDlg dlg = null;
-        
+
         // If no account is selected, then default to the root
-        if(selectedAccount==null)
+        if (selectedAccount == null)
             parentAccount = db.getRootAccount();
         else {
-            // Otherwise decide if it will be a sibling of the selected account or a child
+            // Otherwise decide if it will be a sibling of the selected account
+            // or a child
             // of the selected group.
             parentAccount = selectedAccount;
-            
-            // If the parent is not a folder, it needs to be created as a sibling. So locate
+
+            // If the parent is not a folder, it needs to be created as a
+            // sibling. So locate
             // who the real parent is.
-            if(parentAccount.isFolder()==false) {
+            if (parentAccount.isFolder() == false) {
                 parentAccount = db.findParent(parentAccount);
-                if(parentAccount==null) {
-                    MBox.showError(shlPasswordMaker, "Unable to locate parent account of '" + selectedAccount.getName() + "' id=" + selectedAccount.getId() +", cannot add new group.");
+                if (parentAccount == null) {
+                    MBox.showError(shlPasswordMaker,
+                            "Unable to locate parent account of '"
+                                    + selectedAccount.getName() + "' id="
+                                    + selectedAccount.getId()
+                                    + ", cannot add new group.");
                     return;
                 }
             }
@@ -1564,71 +1671,81 @@ public class GuiMain implements DatabaseListener {
         newAccount.setIsFolder(true);
         SecureCharArray mpw = new SecureCharArray(editMP.getText());
         try {
-            dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage, eyeClosedImage, showPassword);
+            dlg = new AccountDlg(newAccount, mpw, passwordFont, pwm, eyeImage,
+                    eyeClosedImage, showPassword);
         } finally {
             mpw.erase();
             mpw = null;
         }
-            
+
         // A copy of the account is returned if "ok" is clicked.
         newAccount = dlg.open();
-        if(newAccount!=null) {
+        if (newAccount != null) {
             try {
                 newAccount.setId(Account.createId(newAccount));
                 db.addAccount(parentAccount, newAccount);
-            } catch(Exception e) {
-                MBox.showError(shlPasswordMaker, "While creating the new group, an error occurred. You should save your work to a new file and restart.\n" + e.getMessage());
+            } catch (Exception e) {
+                MBox.showError(
+                        shlPasswordMaker,
+                        "While creating the new group, an error occurred. You should save your work to a new file and restart.\n"
+                                + e.getMessage());
             }
         }
     }
 
     private void onSecondsFocusLost() {
         int numSeconds;
-        
+
         try {
             numSeconds = Integer.parseInt(editCopySeconds.getText());
-            if(numSeconds<1) {
+            if (numSeconds < 1) {
                 // TODO: should this also check for some kind of max?
                 secondsDecoration.show();
                 return;
             }
-            
-            db.setGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT, editCopySeconds.getText());
+
+            db.setGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT,
+                    editCopySeconds.getText());
             secondsDecoration.hide();
-        } catch(Exception e) {
+        } catch (Exception e) {
             secondsDecoration.show();
         }
     }
-    
+
     private void onSort() {
         // shouldn't be possible
-        if(selectedAccount==null) {
-            MBox.showError(shlPasswordMaker, "An account must be selected before sorting can occur (how did you do this?).");
+        if (selectedAccount == null) {
+            MBox.showError(shlPasswordMaker,
+                    "An account must be selected before sorting can occur (how did you do this?).");
             return;
         }
-        
+
         // Locate the parent if it is just an account
         Account parentAccount = selectedAccount;
-        if(selectedAccount.isFolder()==false) {
+        if (selectedAccount.isFolder() == false) {
             parentAccount = db.findParent(selectedAccount);
-            if(parentAccount==null) {
-                MBox.showError(shlPasswordMaker, "Unable to locate parent account for " + selectedAccount.getName() + " (how did you do this?).");
+            if (parentAccount == null) {
+                MBox.showError(shlPasswordMaker,
+                        "Unable to locate parent account for "
+                                + selectedAccount.getName()
+                                + " (how did you do this?).");
                 return;
             }
         }
-        
+
         int style = SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL;
-        if(Utilities.isMac())
-        	style = SWT.SHEET;
-        
+        if (Utilities.isMac())
+            style = SWT.SHEET;
+
         SortDlg dlg = new SortDlg(shlPasswordMaker, style, sortOptions);
         SortOptions newOptions = null;
         newOptions = dlg.open();
-        if(newOptions!=null) {
+        if (newOptions != null) {
             sortOptions = newOptions;
-            Collections.sort(parentAccount.getChildren(), new AccountComparator(sortOptions));
-        
-            if(parentAccount.isRoot())
+            Collections.sort(parentAccount.getChildren(),
+                    new AccountComparator(sortOptions));
+
+            if (parentAccount.isRoot())
                 accountTreeViewer.refresh(null, true);
             else
                 accountTreeViewer.refresh(parentAccount, true);
@@ -1636,68 +1753,73 @@ public class GuiMain implements DatabaseListener {
             db.setDirty(true);
         }
     }
-    
+
     /**
      * Invoked when the eyeball is clicked.
      */
     private void onShowPasswordClicked() {
-    	showPassword = btnShowPassword.getSelection();
-    	if(showPassword)
-    		btnShowPassword.setImage(eyeImage);
-    	else
-    		btnShowPassword.setImage(eyeClosedImage);
-    	
-   	    db.setGlobalSetting(GlobalSettingKey.SHOW_GEN_PW, Boolean.toString(showPassword));
-    	
-    	regeneratePasswordAndDraw();
+        showPassword = btnShowPassword.getSelection();
+        if (showPassword)
+            btnShowPassword.setImage(eyeImage);
+        else
+            btnShowPassword.setImage(eyeClosedImage);
+
+        db.setGlobalSetting(GlobalSettingKey.SHOW_GEN_PW,
+                Boolean.toString(showPassword));
+
+        regeneratePasswordAndDraw();
     }
-    
+
     /**
-     * Invoked when the URL field is modified. Causes the accounts to be searched for
-     * anything matching the current URL text.
-     * @param arg0 Ignored, can be null.
+     * Invoked when the URL field is modified. Causes the accounts to be
+     * searched for anything matching the current URL text.
+     * 
+     * @param arg0
+     *            Ignored, can be null.
      */
     private void onUrlSearchModified(ModifyEvent arg0) {
-    	findAccountByUrl();
+        findAccountByUrl();
     }
-        
-    
+
     /**
      * Opens up an "open" dialog and then opens the selected file.
+     * 
      * @return true on success.
      */
     private boolean openFile() {
-        if(db!=null && db.isDirty()) {
-            switch(MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+        if (db != null && db.isDirty()) {
+            switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
             case SWT.YES:
-                if(saveFile()==false)
+                if (saveFile() == false)
                     return false;
                 break;
-                
+
             case SWT.NO:
                 break;
-                
+
             case SWT.CANCEL:
                 return false;
             }
         }
 
-        
         FileDialog fd = new FileDialog(shlPasswordMaker, SWT.OPEN);
         fd.setText("Open RDF File");
-        fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
+        fd.setFilterExtensions(new String[] { "*.rdf", "*.*" });
         String selected = fd.open();
-        if(selected!=null && selected.length()>0)
+        if (selected != null && selected.length() > 0)
             return openFile(selected, false);
         return false;
     }
 
     /**
-     * Reads a file in and sets up the necessary widgets with the data. If this fails
-     * then it will create a new empty database and return false.
-     * @param filename The filename (assumes RDF).
-     * @param inhibitErrors If true, failures to load will not be displayed. This is
-     *                      used for auto-loading of passwordmaker databases.
+     * Reads a file in and sets up the necessary widgets with the data. If this
+     * fails then it will create a new empty database and return false.
+     * 
+     * @param filename
+     *            The filename (assumes RDF).
+     * @param inhibitErrors
+     *            If true, failures to load will not be displayed. This is used
+     *            for auto-loading of passwordmaker databases.
      * @return true on success.
      */
     private boolean openFile(String filename, boolean inhibitErrors) {
@@ -1705,7 +1827,7 @@ public class GuiMain implements DatabaseListener {
         File inputFile = null;
         FileInputStream fin = null;
         boolean ret = false;
-    
+
         try {
             rdfReader = new RDFDatabaseReader();
             inputFile = new File(filename);
@@ -1713,149 +1835,157 @@ public class GuiMain implements DatabaseListener {
             db = rdfReader.read(fin);
             db.addDatabaseListener(this);
             currentFilename = filename;
-            
+
             // Widget setup
             accountTreeViewer.setInput(db);
-            
+
             selectFirstAccount();
             setGuiFromGlobalSettings();
-            
+
             db.setDirty(false);
             ret = true;
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             currentFilename = "";
             db = new Database();
             db.addDatabaseListener(this);
             accountTreeViewer.setInput(db);
-    
-            if(!inhibitErrors)
-                MBox.showError(shlPasswordMaker, "Unable to open " + filename + "\n" + ex.getMessage());
-        }
-        finally {
+
+            if (!inhibitErrors)
+                MBox.showError(shlPasswordMaker, "Unable to open " + filename
+                        + "\n" + ex.getMessage());
+        } finally {
             try {
-                if(fin!=null)
+                if (fin != null)
                     fin.close();
-            } catch(Exception exinner) { }
+            } catch (Exception exinner) {
+            }
         }
-        
+
         return ret;
     }
 
     /**
      * Causes the password to be regenerated.
      * 
-     * This calculates the new generated password and draws it to the image which is used
-     * to display its value. A standard text control is not used because they take a "String"
-     * which cannot be reliably erased when finished. The password is drawn character by
-     * character so the full string never sits on the stack anywhere.
+     * This calculates the new generated password and draws it to the image
+     * which is used to display its value. A standard text control is not used
+     * because they take a "String" which cannot be reliably erased when
+     * finished. The password is drawn character by character so the full string
+     * never sits on the stack anywhere.
      */
     private void regeneratePasswordAndDraw() {
-       SecureCharArray output = null;
-       GC gc = null;
-       
-       
-       try {
-           updateUrlFromInputUrl();
-           
-           gc = new GC(passwordImage);
-           gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
-           gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
-           gc.fillRectangle(canvasOutput.getClientArea());
-           
-           if(selectedAccount!=null && selectedAccount.isFolder()==false && editMP.getText().length()>0) {
-               output = generateOutput();
-               if(output!=null && showPassword==true) {
-    	           gc.setFont(passwordFont);
-    	           int x = 0;
-    	           int xPos = 5;
-    	           int yPos = 1;
-    	           
-    	           if(Utilities.isMac())
-    	               yPos = 7;
+        SecureCharArray output = null;
+        GC gc = null;
 
-    	           // TODO: really should calculate the text extents and center off of it
-    	           for(x=0; x<output.getData().length; x++) {
-    	               char strBytes [] = { output.getData()[x] };
-    	               String str = new String(strBytes);
-    	               gc.drawText(str, xPos, yPos);
-    	               xPos += gc.stringExtent(str).x + 2;
-    	           }
-               }
-           }
-           
-           canvasOutput.redraw();
-       }
-       catch(Exception e) {}
-       finally {
-           if(output!=null)
-               output.erase();
-           if(gc!=null)
-               gc.dispose();
-       }
+        try {
+            updateUrlFromInputUrl();
+
+            gc = new GC(passwordImage);
+            gc.setBackground(Display.getCurrent().getSystemColor(
+                    SWT.COLOR_BLACK));
+            gc.setForeground(Display.getCurrent().getSystemColor(
+                    SWT.COLOR_WHITE));
+            gc.fillRectangle(canvasOutput.getClientArea());
+
+            if (selectedAccount != null && selectedAccount.isFolder() == false
+                    && editMP.getText().length() > 0) {
+                output = generateOutput();
+                if (output != null && showPassword == true) {
+                    gc.setFont(passwordFont);
+                    int x = 0;
+                    int xPos = 5;
+                    int yPos = 1;
+
+                    if (Utilities.isMac())
+                        yPos = 7;
+
+                    // TODO: really should calculate the text extents and center
+                    // off of it
+                    for (x = 0; x < output.getData().length; x++) {
+                        char strBytes[] = { output.getData()[x] };
+                        String str = new String(strBytes);
+                        gc.drawText(str, xPos, yPos);
+                        xPos += gc.stringExtent(str).x + 2;
+                    }
+                }
+            }
+
+            canvasOutput.redraw();
+        } catch (Exception e) {
+        } finally {
+            if (output != null)
+                output.erase();
+            if (gc != null)
+                gc.dispose();
+        }
     }
-    
-	/**
-     * Attempts to save a file to the current filename. If there is no current file
-     * name, then save-as is invoked. This also clears the dirty status on success.
+
+    /**
+     * Attempts to save a file to the current filename. If there is no current
+     * file name, then save-as is invoked. This also clears the dirty status on
+     * success.
+     * 
      * @return true on success.
      */
     private boolean saveFile() {
         boolean ret = false;
-        
-        // If we don't have a filename yet, call saveAs() which will call this function
+
+        // If we don't have a filename yet, call saveAs() which will call this
+        // function
         // in return with a filename set.
-        if(currentFilename.trim().length()==0) {
+        if (currentFilename.trim().length() == 0) {
             return saveFileAs();
         }
-        
+
         try {
             RDFDatabaseWriter out = new RDFDatabaseWriter();
             File newFile = new File(currentFilename);
-            if(newFile.exists()==false)
+            if (newFile.exists() == false)
                 newFile.createNewFile();
-            
+
             FileOutputStream fout = new FileOutputStream(newFile);
             out.write(fout, db);
             db.setDirty(false);
             ret = true;
+        } catch (Exception e) {
+            MBox.showError(shlPasswordMaker, "Unable to save to "
+                    + currentFilename + ".\n" + e.getMessage());
         }
-        catch(Exception e) {
-            MBox.showError(shlPasswordMaker, "Unable to save to " + currentFilename + ".\n" + e.getMessage());
-        }
-        
+
         return ret;
     }
 
     /**
-     * Opens up a dialog-box allowing the user to select a file to save to. This will invoke
-     * saveFile behind the scenes and update currentFilename on success.
+     * Opens up a dialog-box allowing the user to select a file to save to. This
+     * will invoke saveFile behind the scenes and update currentFilename on
+     * success.
+     * 
      * @return true on success.
      */
     private boolean saveFileAs() {
         FileDialog fd = new FileDialog(shlPasswordMaker, SWT.SAVE);
         fd.setText("Save RDF As");
-        fd.setFilterExtensions(new String [] { "*.rdf", "*.*" });
+        fd.setFilterExtensions(new String[] { "*.rdf", "*.*" });
         String selected = fd.open();
-        if(selected!=null && selected.length()>0) {
+        if (selected != null && selected.length() > 0) {
             String oldFilename = currentFilename;
             currentFilename = selected;
-            
+
             File fileTest = new File(selected);
-            if(fileTest.exists()) {
-                if(MBox.showYesNo(shlPasswordMaker, "File " + selected + " already exists, would you like to replace it?")!=SWT.YES)
+            if (fileTest.exists()) {
+                if (MBox.showYesNo(shlPasswordMaker, "File " + selected
+                        + " already exists, would you like to replace it?") != SWT.YES)
                     return false;
             }
 
-            
-            if(saveFile()==true) {
+            if (saveFile() == true) {
                 return true;
             }
-            
+
             // it failed if we get here, restore the filename
             currentFilename = oldFilename;
         }
-        
-        
+
         return false;
     }
 
@@ -1863,91 +1993,93 @@ public class GuiMain implements DatabaseListener {
      * Called when an account is selected. This is invoked by the tree when the
      * selection is made.
      * 
-     * @param acc The new account selection.
+     * @param acc
+     *            The new account selection.
      */
     private void selectAccount(Account acc) {
-    	// Store the newly selected account
+        // Store the newly selected account
         selectedAccount = acc;
-        if(acc!=null) {
-            btnCopyToClipboard.setEnabled(selectedAccount.isFolder()==false);
+        if (acc != null) {
+            btnCopyToClipboard.setEnabled(selectedAccount.isFolder() == false);
             editAccount.setText(selectedAccount.getName());
             editDesc.setText(selectedAccount.getDesc());
             editUsername.setText(selectedAccount.getUsername());
-            
-            // When the default account is selected, the user can enter an URL to have
+
+            // When the default account is selected, the user can enter an URL
+            // to have
             // the account settings applied against.
-            if(acc.isDefault()) {
+            if (acc.isDefault()) {
                 editInputUrl.setEnabled(true);
                 lblInputUrl.setEnabled(true);
                 editInputUrl.setText("");
-                
+
                 urlSearchEnabled = false;
                 editUrlSearch.setText("");
                 urlSearchEnabled = true;
-            }
-            else {
+            } else {
                 editInputUrl.setEnabled(false);
                 lblInputUrl.setEnabled(false);
                 editUrl.setText(acc.getUrl());
             }
-            
-        }
-        else {
+
+        } else {
             btnCopyToClipboard.setEnabled(false);
             editAccount.setText("NO ACCOUNT SELECTED");
             editDesc.setText("");
             editUsername.setText("");
         }
-        
+
         regeneratePasswordAndDraw();
     }
 
     private void selectFirstAccount() {
-        if(db.getRootAccount().getChildren().size()>0)
-	        accountTreeViewer.setSelection(new StructuredSelection(db.getRootAccount().getChildren().get(0)));
-	    else
-	        accountTreeViewer.setSelection(null);
-	}
+        if (db.getRootAccount().getChildren().size() > 0)
+            accountTreeViewer.setSelection(new StructuredSelection(db
+                    .getRootAccount().getChildren().get(0)));
+        else
+            accountTreeViewer.setSelection(null);
+    }
 
     /**
-     * Updates editUrl with modified text from editInputUrl based in the rules of the
-     * current account if it is the default account.
+     * Updates editUrl with modified text from editInputUrl based in the rules
+     * of the current account if it is the default account.
      */
     private void updateUrlFromInputUrl() {
-        if(selectedAccount!=null) {
-            if(selectedAccount.isDefault()) {
+        if (selectedAccount != null) {
+            if (selectedAccount.isDefault()) {
                 String origUrl = editInputUrl.getText();
-                String newUrl = pwm.getModifiedInputText(origUrl, selectedAccount);
+                String newUrl = pwm.getModifiedInputText(origUrl,
+                        selectedAccount);
                 editUrl.setText(newUrl);
             }
         }
     }
-    
 
+    // ////////////////////////////////////////////////////////////
+    //
+    // DATABASELISTENER INTERFACE
+    //
+    // ////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////
-	//
-	// DATABASELISTENER INTERFACE
-	//
-    //////////////////////////////////////////////////////////////
-	
     @Override
     public void accountAdded(Account parent, Account account) {
-        // I'm not sure why, but if you add a node off the root level, refreshing the root node
+        // I'm not sure why, but if you add a node off the root level,
+        // refreshing the root node
         // will not make it show up. Refreshing the whole tree does.
-        if(parent.isRoot())
+        if (parent.isRoot())
             accountTreeViewer.refresh();
         else
             accountTreeViewer.refresh(parent);
-        
-        accountTreeViewer.setSelection(new StructuredSelection(account));    
+
+        accountTreeViewer.setSelection(new StructuredSelection(account));
     }
 
     @Override
     public void accountRemoved(Account parent, Account account) {
-        // I'm not sure why, but if you remove a node off the root level, refreshing the root node
+        // I'm not sure why, but if you remove a node off the root level,
+        // refreshing the root node
         // will not make it show up. Refreshing the whole tree does.
-        if(parent.isRoot())
+        if (parent.isRoot())
             accountTreeViewer.refresh();
         else
             accountTreeViewer.refresh(parent);
@@ -1955,7 +2087,7 @@ public class GuiMain implements DatabaseListener {
 
     @Override
     public void accountChanged(Account account) {
-        //accountTreeViewer.refresh(account);
+        // accountTreeViewer.refresh(account);
         accountTreeViewer.update(account, null);
     }
 

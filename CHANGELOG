@@ -1,5 +1,16 @@
 PasswordMaker Java Edition Change Log
 
+0.7.1
+  - Made the entire window a drop target instead of just a few fields. The
+    drop target is always assumed to be an URL now (why would you drag a
+    username?).
+  - After drag and drop is complete, the master password field is
+    automatically focused.
+  - Windows installers now invokes the previously installed PasswordMaker-JE
+    uninstaller if the previous installation is detected. Note that the 64-bit
+    installer only detects the 64-bit uninstaller and the 32-bit uninstaller
+    only detects the 32-bit uninstaller.
+
 0.7.0
   - Issue 29 fixed. Hash marks, '#', no longer cause problems in the input URL.
   - Issue 30 fixed. If a file with name that ends with ".rdf" exists in the
