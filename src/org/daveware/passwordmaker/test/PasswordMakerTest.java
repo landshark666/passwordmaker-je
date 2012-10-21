@@ -115,6 +115,16 @@ public class PasswordMakerTest {
         // Default account, MD5 length=8
         new PWTest(new Account("Yummy Humans", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com"), "123abc!@#/\\'\"", "B}ZR0.@e"),
         
+        // Very long password tests (issue 24)
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.MD5, false, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "B}ZR0.@exd0Z>3Du@`.&KW}Z(@~tDhJ*S$y_MnN]D.P*9O`\\l_"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.MD5, true, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "IYKnwMlY@m~j&A8_r$0YG&A~HGiZ1s;^;f``?7+xDrhnJL8h_&"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.SHA1, false, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "F}3+bzw=$P-kFMtp<p\\DkQHvE[rg!Lb@;RZ2/L1\"R3JF)7_`?C"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.SHA1, true, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "Fz7cVJW9,r`S3bm8|k$SM6xe2GP_aoMgcsK}p9{t<QgjK9Q@>j"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.SHA256, false, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "9!,-H}!R`n\";LV#GiK!BnHqn&D<Y$`uI]X(3vA|R;jo(<Xc!EU"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.SHA256, true, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "ZQ7v(aB`T-$eN2Nk`yI;LnQOuK,W-J|Uf<K]J$,u@b=7]_&l9H"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.RIPEMD160, false, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "FV``ev3wbT}3#dBkjhmbBW*IvERuK_H=d&+t4L$:E[Rdd6E-l~"),
+        new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.RIPEMD160, true, true, 50, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "Gg1P#zuzhFu#w>h&~C4/~\"yb{BQvjqF>:gPvjQ+<!4><K|o|E%"),
+        
         // MD5, HMACMD5, SHA1, HMACSH1 - no leet
         new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.MD5, false, true, 12, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "B}ZR0.@exd0Z"),
         new PWTest(new Account("Yummy Humans", "", "yummyhumans.com", "tyrannosaurus@iwishiwasnotextinct.com", AlgorithmType.MD5, true, true, 12, CharacterSets.BASE_93_SET, LeetType.NONE, LeetLevel.LEVEL1, "", "", "", false, ""), "123abc!@#/\\'\"", "IYKnwMlY@m~j"),

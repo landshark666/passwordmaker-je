@@ -398,7 +398,6 @@ public class PasswordMaker {
         SecureCharArray output                  = new SecureCharArray();
         SecureCharArray secureIteration         = new SecureCharArray();
         SecureCharArray intermediateOutput      = null;
-        SecureCharArray interIntermediateOutput = null;
         int count   = 0;
         int length  = account.getLength();
         
@@ -413,9 +412,7 @@ public class PasswordMaker {
                     secureIteration.append(new SecureCharArray("\n"));
                     secureIteration.append(new SecureCharArray(Integer.toString(count)));
                     
-                    interIntermediateOutput = runAlgorithm(secureIteration, data, account);
-                    intermediateOutput.append(interIntermediateOutput);
-                    interIntermediateOutput.erase();
+                    intermediateOutput = runAlgorithm(secureIteration, data, account);
 
                     secureIteration.erase();
                 }
@@ -431,8 +428,6 @@ public class PasswordMaker {
         } finally {
             if(intermediateOutput!=null)
                 intermediateOutput.erase();
-            if(interIntermediateOutput!=null)
-                interIntermediateOutput.erase();
             if(secureIteration!=null)
                 secureIteration.erase();
         }
