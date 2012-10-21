@@ -109,7 +109,7 @@ public class SortDlg extends Dialog {
             }
         });
         btnCancel.setText("Cancel");
-        btnCancel.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmaker/icons/cancel.png"));
+        btnCancel.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmakerapp/icons/cancel.png"));
         
         btnOk = new Button(shlSortOptions, SWT.NONE);
         fd_btnCancel.right = new FormAttachment(100, -105);
@@ -125,7 +125,7 @@ public class SortDlg extends Dialog {
             }
         });
         btnOk.setText("OK");
-        btnOk.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmaker/icons/check.png"));
+        btnOk.setImage(SWTResourceManager.getImage(SortDlg.class, "/org/daveware/passwordmakerapp/icons/check.png"));
         
         lblSortStyle = new Label(shlSortOptions, SWT.NONE);
         FormData fd_lblSortStyle = new FormData();
