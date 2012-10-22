@@ -171,29 +171,6 @@ public class PasswordMaker {
             r1 -= 5;
         
         double quarterLen = Math.round(((double)pwLength) / 4.0);
-        
-        /*
-        // Ratio of numbers in the password
-        float [] ratios = {0, 0, 0, 0};
-        float [] cc = {0, 0, 0, 0};
-        for(i=0; i<pwLength;i++) {
-            if(!Character.isDigit(pw.getCharAt(i)))
-                ratios[0] += 1.0f;
-            if(Character.isLetterOrDigit(pw.getCharAt(i)))
-                ratios[1] += 1.0f;
-            if(!Character.isUpperCase(pw.getCharAt(i)))
-                ratios[2] += 1.0f;
-            if(!Character.isLowerCase(pw.getCharAt(i)))
-                ratios[3] += 1.0f;
-        }
-        for(i=0; i<ratios.length; i++) {
-            cc[i] = ratios[i] > quarterLen*2.0f ? quarterLen : Math.abs(quarterLen - ratios[i]);
-            ratios[i] = 1.0f - (cc[i] / quarterLen);
-        }
-        
-        float pwStrength = (((ratios[0] + ratios[1] + ratios[2] + ratios[3] + r0) / 5.0f) * 100.0f ) + r1;
-*/
-        
         double num = 0;
         for(i=0; i<pwLength; i++)
             if(!Character.isDigit(pw.getCharAt(i)))
@@ -228,8 +205,6 @@ public class PasswordMaker {
         num = pwLength - num;
         c = num > quarterLen*2 ? quarterLen : Math.abs(quarterLen - num);
         double r5 = 1.0 - (c / quarterLen);
-
-        //System.out.println("debug1 = " + r2 + "," + r3 + "," + r4 + "," + r5);
 
         double pwStrength = (((r0+r2+r3+r4+r5) / 5.0f) * 100.0f) + r1;
         

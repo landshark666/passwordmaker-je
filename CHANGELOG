@@ -1,6 +1,6 @@
 PasswordMaker Java Edition Change Log
 
-0.7.1
+0.7.2
   - Made the entire window a drop target instead of just a few fields. The
     drop target is always assumed to be an URL now (why would you drag a
     username?).
@@ -10,6 +10,10 @@ PasswordMaker Java Edition Change Log
     uninstaller if the previous installation is detected. Note that the 64-bit
     installer only detects the 64-bit uninstaller and the 32-bit uninstaller
     only detects the 32-bit uninstaller.
+  - Issue 24 fixed. Long passwords (longer than the byte-size of the current
+    algorithm hash) no longer have null values in them (displayed as 
+    squares).
+  - Issue 25 fixed. Images in the sort dialog are now displayed properly.
 
 0.7.0
   - Issue 29 fixed. Hash marks, '#', no longer cause problems in the input URL.
