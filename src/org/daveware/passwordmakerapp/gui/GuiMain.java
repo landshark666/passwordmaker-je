@@ -37,6 +37,8 @@ import org.daveware.passwordmaker.Utilities;
 import org.daveware.passwordmakerapp.AccountComparator;
 import org.daveware.passwordmakerapp.CmdLineSettings;
 import org.daveware.passwordmakerapp.SortOptions;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -105,6 +107,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+
 
 /**
  * Implements the main window for PasswordMakerJE.
@@ -240,6 +243,8 @@ public class GuiMain implements DatabaseListener {
             setupFonts();
             setupTree();
             setupDecorators();
+            
+            setupOSX();
 
             shlPasswordMaker.open();
             shlPasswordMaker.layout();
@@ -323,6 +328,34 @@ public class GuiMain implements DatabaseListener {
         passwordFont = new Font(Display.getCurrent(), fdItalics[0].getName(),
                 14, SWT.BOLD);
     }
+    
+    /*
+     * Does OSX-specific setup.
+     * 
+     * OSX has a separate application menu which requires special handling. This adds the special
+     * handling for the quit, preferences, and about menu items of that menu.
+     */
+    protected void setupOSX() {
+    	if(System.getProperty("os.name").toLowerCase().contains("mac")) {
+    		CocoaUIEnhancer enh = new CocoaUIEnhancer("PWMJE");
+    		enh.hookApplicationMenu(display, new Listener() {
+				@Override
+				public void handleEvent(Event arg0) {
+					onCloseWindow(arg0);
+					
+				}
+    		}, new Action("&About PWMJE") {
+    			public void run() {
+    				AboutDlg dlg = new AboutDlg(shlPasswordMaker, SWT.SHEET);
+                    dlg.open();
+    			}
+    		}, new Action("&Preferences") {
+    			public void run() {
+    				
+    			}
+    		});
+    	}
+    }
 
     protected void setupTree() {
         // The tree must have a brain!
@@ -402,7 +435,10 @@ public class GuiMain implements DatabaseListener {
 
             @Override
             public void handleEvent(Event arg0) {
-                onCloseWindow(arg0);
+            	// For OSX we install a different close-handler during setup
+            	if(System.getProperty("os.name").toLowerCase().contains("mac")==false) {
+            		onCloseWindow(arg0);
+            	}
             }
 
         });
@@ -911,21 +947,25 @@ public class GuiMain implements DatabaseListener {
         });
         menuItemExit.setText("Exit");
 
-        mntmhelp = new MenuItem(menu_1, SWT.CASCADE);
-        mntmhelp.setText("&Help");
+        // The MAC's "about" menuitem is part of the application menu. For everyone else
+        // it is in a separate "Help" menu.
+        if(System.getProperty("os.name").toLowerCase().contains("mac")==false) {
+			mntmhelp = new MenuItem(menu_1, SWT.CASCADE);
+			mntmhelp.setText("&Help");
 
-        menu_2 = new Menu(mntmhelp);
-        mntmhelp.setMenu(menu_2);
+			menu_2 = new Menu(mntmhelp);
+			mntmhelp.setMenu(menu_2);
 
-        mntmabout = new MenuItem(menu_2, SWT.NONE);
-        mntmabout.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent arg0) {
-                AboutDlg dlg = new AboutDlg(shlPasswordMaker, SWT.SHEET);
-                dlg.open();
-            }
-        });
-        mntmabout.setText("&About PasswordMakerJE");
+			mntmabout = new MenuItem(menu_2, SWT.NONE);
+			mntmabout.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent arg0) {
+					AboutDlg dlg = new AboutDlg(shlPasswordMaker, SWT.SHEET);
+					dlg.open();
+				}
+			});
+			mntmabout.setText("&About PasswordMakerJE");
+		}
         shlPasswordMaker
                 .setTabList(new Control[] { grpInput, grpAccounts, sash });
     }

@@ -1,5 +1,12 @@
 PasswordMaker Java Edition Change Log
 
+0.7.3
+  - Rebuilt for OSX since the 0.7.2 OSX build had a weird build-related
+    bug (issue 40).
+  - Fixed issue 41, improper handling of the OSX app-quit menu item. I
+    also removed the help/about menu for OSX since the about item is
+    in the main app menu.
+
 0.7.2
   - Made the entire window a drop target instead of just a few fields. The
     drop target is always assumed to be an URL now (why would you drag a
