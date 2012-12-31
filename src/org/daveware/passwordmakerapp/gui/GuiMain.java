@@ -1130,7 +1130,7 @@ public class GuiMain implements DatabaseListener {
 
         // Now try the known home-directory files
         try {
-            String[] locations = { "passwordmaker.rdf", "pwmje.rdf",
+            String[] locations = { "passwordmaker.rdf", ".passwordmaker.rdf", "pwmje.rdf",
                     ".pwmje.rdf", ".passwordmakerrc", };
             String home = System.getProperty("user.home");
             if (home != null) {
