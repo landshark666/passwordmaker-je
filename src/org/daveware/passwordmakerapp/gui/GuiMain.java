@@ -170,6 +170,7 @@ public class GuiMain implements DatabaseListener {
     private Image passwordImage = null;
     private Image eyeImage = null;
     private Image eyeClosedImage = null;
+    private Image iconImage = null;
 
     private Font passwordFont = null;
 
@@ -275,9 +276,9 @@ public class GuiMain implements DatabaseListener {
      * Assigns the application icon.
      */
     private void setupAppIcon() {
-        Image img = SWTResourceManager.getImage(GuiMain.class,
+        iconImage = SWTResourceManager.getImage(GuiMain.class,
                 "/org/daveware/passwordmakerapp/icons/pwmlogo.png");
-        shlPasswordMaker.setImage(img);
+        shlPasswordMaker.setImage(iconImage);
     }
     
     /**
@@ -1476,6 +1477,8 @@ public class GuiMain implements DatabaseListener {
             eyeImage.dispose();
         if (eyeClosedImage != null)
             eyeClosedImage.dispose();
+        if (iconImage != null)
+            iconImage.dispose();
         if (passwordFont != null)
             passwordFont.dispose();
         if (regularSearchFont != null)
