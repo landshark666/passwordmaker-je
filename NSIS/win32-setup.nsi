@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Name "PasswordMaker Java Edition (34-bit)"
+Name "PasswordMaker Java Edition (32-bit)"
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
