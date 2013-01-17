@@ -10,6 +10,7 @@ PasswordMaker Java Edition Change Log
     managers should display a proper icon.
   - TEST ME ON MAC: Implemented issue 42, use a monospaced font for the generated
     password.
+  - Fixed issue 43, 32-bit windows installer felt small and claimed it was 34-bit.
 
 0.7.2
   - Made the entire window a drop target instead of just a few fields. The
