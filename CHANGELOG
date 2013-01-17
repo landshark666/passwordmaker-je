@@ -11,6 +11,13 @@ PasswordMaker Java Edition Change Log
   - TEST ME ON MAC: Implemented issue 42, use a monospaced font for the generated
     password.
   - Fixed issue 43, 32-bit windows installer felt small and claimed it was 34-bit.
+  - Fixed issue 31, use spinner for password length field. Also changed the
+    timeout box on the main window to a spinner.
+  - Implemented issue 44, once the countdown timer is started, the button changes
+    to a cancel button and can be used to cancel the countdown. All the rest of
+    the controls are disabled during this time.
+  - Fixed issue 45, closing the app should erase the password on the clipboard.
+  
 
 0.7.2
   - Made the entire window a drop target instead of just a few fields. The

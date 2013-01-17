@@ -74,6 +74,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.widgets.Spinner;
 
 public class AccountDlg {
     static final String INVALID_ACCOUNT_STRING = "Invalid account";
@@ -96,7 +97,7 @@ public class AccountDlg {
 	private Text textPrefix;
 	private Text textSuffix;
 	private Text textModifier;
-	private Text textPasswordLength;
+	private Spinner textPasswordLength;
 	private Table tablePatterns;
 	private TableViewer tableViewer;
 	private Button checkAutoPop;
@@ -618,13 +619,13 @@ public class AccountDlg {
 		lblPasswordLength.setAlignment(SWT.RIGHT);
 		lblPasswordLength.setText("Password Length:");
 		
-		textPasswordLength = new Text(composite_2, SWT.BORDER);
-		textPasswordLength.addModifyListener(new ModifyListener() {
-		    public void modifyText(ModifyEvent arg0) {
-		        updatePasswordStrengthMeter();
-		    }
-		});
+		textPasswordLength = new Spinner(composite_2, SWT.BORDER);
 		textPasswordLength.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		textPasswordLength.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent arg0) {
+                updatePasswordStrengthMeter();
+            }
+        });
 		
 		lengthDecoration = new ControlDecoration(textPasswordLength, SWT.LEFT | SWT.TOP);
 		lengthDecoration.setDescriptionText("The password length must be at least 1.");
@@ -922,19 +923,12 @@ public class AccountDlg {
         account.setAlgorithm(AlgorithmType.getTypes()[selectedAlgo/2]);
         account.setHmac((selectedAlgo & 1)!=0);
         
-        if(textPasswordLength.getText().trim().length()>0) {
-    	    int passLength = 0;
-    	    try {
-    	        passLength = Integer.parseInt(textPasswordLength.getText());
-    	        lengthDecoration.hide();
-    	    } catch(Exception badPassLen) {
-    	        lengthDecoration.show();
-    	        textPasswordLength.setFocus();
-    	        return false;
-    	    }
-    	    account.setLength(passLength);
+        if(textPasswordLength.getSelection()>0) {
+            lengthDecoration.hide();
+            account.setLength(textPasswordLength.getSelection());
         }
         else {
+            lengthDecoration.show();
             return false;
         }
         
@@ -1007,8 +1001,10 @@ public class AccountDlg {
     		comboHashAlgorithm.add("HMAC-" + type.getName());
     	}
     	comboHashAlgorithm.select((account.getAlgorithm().getType()-1) * 2 +(account.isHmac()?1:0));
+    	textPasswordLength.setMaximum(10000);
+    	textPasswordLength.setMinimum(1);
     	
-    	textPasswordLength.setText(Integer.toString(account.getLength()));
+    	textPasswordLength.setSelection(8);
     
     	comboCharacters.add(account.getCharacterSet(), 0);
     	comboCharacters.select(0);

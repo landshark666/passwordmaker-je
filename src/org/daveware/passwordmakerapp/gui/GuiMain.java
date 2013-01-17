@@ -110,6 +110,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.widgets.Spinner;
 
 
 /**
@@ -133,7 +134,7 @@ public class GuiMain implements DatabaseListener {
     private Text editDesc;
     private Text editUsername;
     private Text editMP;
-    private Text editCopySeconds;
+    private Spinner editCopySeconds;
     private Text editUrlSearch;
     private Canvas canvasOutput;
     private Display display;
@@ -183,6 +184,7 @@ public class GuiMain implements DatabaseListener {
     // -------- End RESOURCES THAT MUST BE DISPOSED OF
     // -----------------------------------
 
+    private Thread countdownThread = null;
     private CmdLineSettings cmdLineSettings;
     private String currentFilename = "";
     private Account selectedAccount = null;
@@ -771,19 +773,15 @@ public class GuiMain implements DatabaseListener {
                 true, false, 1, 1));
         comboCopyBehavior.select(0);
 
-        editCopySeconds = new Text(compositeButtons, SWT.BORDER);
+        editCopySeconds = new Spinner(compositeButtons, SWT.BORDER);
         editCopySeconds.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent arg0) {
                 onSecondsFocusLost();
             }
-
-            @Override
-            public void focusGained(FocusEvent arg0) {
-                ((Text) (arg0.widget)).selectAll();
-            }
         });
-        editCopySeconds.setText("5");
+        editCopySeconds.setMinimum(1);
+        editCopySeconds.setSelection(5);
         GridData gd_editCloseSeconds = new GridData(SWT.LEFT, SWT.CENTER,
                 false, false, 1, 1);
         gd_editCloseSeconds.widthHint = 33;
@@ -988,6 +986,40 @@ public class GuiMain implements DatabaseListener {
      * Below here is my stuff.
      */
 
+
+    /**
+     * Disables all controls when the copy-to-clipboard timer is running.
+     */
+    private void disableControlsForCopy() {
+        Control [] controls = { accountTree, editUsername, editMP, editUrlSearch, 
+                editCopySeconds, comboCopyBehavior, accountFilterText, filterIcon
+        };
+        for(Control c: controls) {
+            c.setEnabled(false);
+        }
+        
+        btnCopyToClipboard.setText("Cancel countdown");
+        
+        filterIcon.setVisible(false);
+    }
+    
+    /**
+     * Enables all controls once the copy-to-clipboard timer has expired.
+     */
+    private void enableControlsForCopy() {
+        Control [] controls = { accountTree, editUsername, editMP, editUrlSearch, 
+                editCopySeconds, comboCopyBehavior, accountFilterText, filterIcon
+        };
+        for(Control c: controls) {
+            c.setEnabled(true);
+        }
+        
+        btnCopyToClipboard.setText("Copy to clipboard, then");
+        
+        filterIcon.setVisible(true);
+    }
+
+    
     /**
      * Copies the currently generated password to the clipboard.
      */
@@ -1105,41 +1137,45 @@ public class GuiMain implements DatabaseListener {
      *            The button to set the number of seconds left to.
      * @return The created thread.
      */
-    private Thread getCountdownThread(Text text, int numSeconds) {
-        final Text textControl = text;
+    private Thread getCountdownThread(Spinner spinner, int numSeconds) {
+        final Spinner spinnerControl = spinner;
         final int countdownValue = numSeconds;
 
         return new Thread() {
             public void run() {
+                boolean wasInterrupted = false;
                 try {
                     // This is kinda dirty. A 'final' integer needs to be used
                     // inside the anonymous class
                     // so currentI is created each iteration. Gross.
-                    for (int i = 0; i < countdownValue; ++i) {
+                    for (int i = 0; i < countdownValue && wasInterrupted==false; ++i) {
                         final int currentI = i;
                         display.asyncExec(new Runnable() {
                             public void run() {
-                                textControl.setText(Integer
-                                        .toString(countdownValue - currentI));
+                                spinnerControl.setSelection(countdownValue - currentI);
                             }
                         });
                         Thread.sleep(1000);
                     }
-                } catch (Exception e) {
+                } catch (InterruptedException iExc) {
+                    wasInterrupted = true;
                 }
 
+                // gross again... the async execution below needs a final var
+                final boolean anotherWasInterrupted = wasInterrupted;
                 display.asyncExec(new Runnable() {
                     public void run() {
                         Utilities.clearClipboard();
 
-                        if (closeAfterTimer == true)
+                        if (anotherWasInterrupted==false && closeAfterTimer == true)
                             shlPasswordMaker.dispose();
                         else {
-                            btnCopyToClipboard.setEnabled(true);
-                            comboCopyBehavior.setEnabled(true);
-                            editCopySeconds.setEnabled(true);
-                            editCopySeconds.setText(db
-                                    .getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+                            enableControlsForCopy();
+                            int seconds = 5;
+                            try {
+                                seconds = Integer.parseInt(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+                            } catch(NumberFormatException e) { }
+                            editCopySeconds.setSelection(seconds);
                         }
                     }
                 });
@@ -1151,8 +1187,11 @@ public class GuiMain implements DatabaseListener {
      * Sets the various fields of the GUI based on the settings in the database.
      */
     private void setGuiFromGlobalSettings() {
-        editCopySeconds.setText(db
-                .getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+        int seconds = 5;
+        try {
+            seconds = Integer.parseInt(db.getGlobalSetting(GlobalSettingKey.CLIPBOARD_TIMEOUT));
+        } catch(NumberFormatException e) { }
+        editCopySeconds.setSelection(seconds);
         btnShowPassword.setSelection(db.getGlobalSetting(
                 GlobalSettingKey.SHOW_GEN_PW).compareTo("true") == 0);
         onShowPasswordClicked(); // due to manual "setSelection" not triggering
@@ -1356,54 +1395,62 @@ public class GuiMain implements DatabaseListener {
      *            The button clicked.
      */
     private void onCopyToClipboard() {
-        // First make sure the seconds-value is valid. If not, set it to 5 and
-        // carry on.
-        int seconds;
-
-        closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false
-                : true;
-
-        // Perform a dirty check if the app will close after the operation
-        if (closeAfterTimer && db.isDirty()) {
-            switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
-            case SWT.YES:
-                // Only continue if the save succeeded
-                if (saveFile() != true)
-                    return;
-                break;
-
-            case SWT.NO:
-                break;
-
-            case SWT.CANCEL:
-                // user aborted
-                return;
-            }
+        // If a thread is already running, the button serves as a cancellation
+        if(countdownThread!=null && countdownThread.isAlive()) {
+            countdownThread.interrupt();
         }
-
-        try {
-            seconds = Integer.parseInt(editCopySeconds.getText());
-            if (seconds < 1) {
+        else {
+            // First make sure the seconds-value is valid. If not, set it to 5 and
+            // carry on.
+            int seconds;
+    
+            closeAfterTimer = comboCopyBehavior.getSelectionIndex() == 0 ? false
+                    : true;
+    
+            // Perform a dirty check if the app will close after the operation
+            if (closeAfterTimer && db.isDirty()) {
+                switch (MBox.showYesNoCancel(shlPasswordMaker, EXIT_PROMPT)) {
+                case SWT.YES:
+                    // Only continue if the save succeeded
+                    if (saveFile() != true)
+                        return;
+                    break;
+    
+                case SWT.NO:
+                    break;
+    
+                case SWT.CANCEL:
+                    // user aborted
+                    return;
+                }
+            }
+    
+            try {
+                seconds = Integer.parseInt(editCopySeconds.getText());
+                if (seconds < 1) {
+                    secondsDecoration.show();
+                    editCopySeconds.setFocus();
+                    return;
+                }
+    
+                secondsDecoration.hide();
+            } catch (Exception ee) {
                 secondsDecoration.show();
                 editCopySeconds.setFocus();
                 return;
             }
-
-            secondsDecoration.hide();
-        } catch (Exception ee) {
-            secondsDecoration.show();
-            editCopySeconds.setFocus();
-            return;
+    
+            disableControlsForCopy();
+    
+            copyGeneratedToClipboard();
+            countdownThread = getCountdownThread(editCopySeconds, seconds);
+            if (countdownThread != null)
+                countdownThread.start();
+            else {
+                MBox.showError(shlPasswordMaker,
+                        "Unable to create a timer. Your password is on the clipboard and WILL NOT be erased. This is a bug, please file a bug report.");
+            }
         }
-
-        btnCopyToClipboard.setEnabled(false);
-        editCopySeconds.setEnabled(false);
-        comboCopyBehavior.setEnabled(false);
-
-        copyGeneratedToClipboard();
-        Thread thread = getCountdownThread(editCopySeconds, seconds);
-        if (thread != null)
-            thread.start();
     }
 
     /**
@@ -1468,6 +1515,8 @@ public class GuiMain implements DatabaseListener {
      *            The dispose event.
      */
     private void onDisposing(DisposeEvent arg0) {
+        Utilities.clearClipboard();
+        
         if (passwordImage != null)
             passwordImage.dispose();
         if (searchImage != null)
@@ -1753,7 +1802,7 @@ public class GuiMain implements DatabaseListener {
         int numSeconds;
 
         try {
-            numSeconds = Integer.parseInt(editCopySeconds.getText());
+            numSeconds = editCopySeconds.getSelection();
             if (numSeconds < 1) {
                 // TODO: should this also check for some kind of max?
                 secondsDecoration.show();
