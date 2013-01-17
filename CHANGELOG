@@ -6,8 +6,10 @@ PasswordMaker Java Edition Change Log
   - Fixed issue 41, improper handling of the OSX app-quit menu item. I
     also removed the help/about menu for OSX since the about item is
     in the main app menu.
-  - Implemented issue 34, an application icon is now set so window
+  - TEST ME ON MAC: Implemented issue 34, an application icon is now set so window
     managers should display a proper icon.
+  - TEST ME ON MAC: Implemented issue 42, use a monospaced font for the generated
+    password.
 
 0.7.2
   - Made the entire window a drop target instead of just a few fields. The

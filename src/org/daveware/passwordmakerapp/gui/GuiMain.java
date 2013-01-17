@@ -43,6 +43,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -338,7 +339,7 @@ public class GuiMain implements DatabaseListener {
         regularSearchFont = new Font(display, stockFont.getFontData());
         accountFilterText.setFont(italicsSearchFont);
 
-        passwordFont = new Font(Display.getCurrent(), fdItalics[0].getName(),
+        passwordFont = new Font(Display.getCurrent(), JFaceResources.getFont(JFaceResources.TEXT_FONT).getFontData()[0].getName(),
                 14, SWT.BOLD);
     }
     
