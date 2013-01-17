@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -238,7 +240,8 @@ public class GuiMain implements DatabaseListener {
         try {
             display = Display.getDefault();
             createContents();
-
+            
+            setupAppIcon();
             setupDragQueens();
             setupFonts();
             setupTree();
@@ -268,6 +271,15 @@ public class GuiMain implements DatabaseListener {
 
     }
 
+    /**
+     * Assigns the application icon.
+     */
+    private void setupAppIcon() {
+        Image img = SWTResourceManager.getImage(GuiMain.class,
+                "/org/daveware/passwordmakerapp/icons/pwmlogo.png");
+        shlPasswordMaker.setImage(img);
+    }
+    
     /**
      * Adds drag'n'drop to the shell for URLs (and other text, but really for
      * URLs).
