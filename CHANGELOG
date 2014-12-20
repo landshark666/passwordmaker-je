@@ -1,6 +1,13 @@
 PasswordMaker Java Edition Change Log
 
-0.8.0
+0.7.3
+  - Generated password font name and size can now be specified from
+    the command line (--font and --fontsize).
+  - The main window now has the ability to override an account's
+    password modifier and length settings if desired (click the
+    checkboxes to override).
+
+?.?.?
   - Rebuilt for OSX since the 0.7.2 OSX build had a weird build-related
     bug (issue 40).
   - Fixed issue 41, improper handling of the OSX app-quit menu item. I
