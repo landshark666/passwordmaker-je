@@ -2,7 +2,7 @@
 
 A Java port of the Firefox PasswordMaker plugin.  PasswordMaker is a password management program which does not store any actual passwords. Instead the way passwords are generated are described and you input a master password which feeds into that algorithm to generate the final password. Each site can have different ways to generate the password, or all sites can share the same settings.
 
-The latest version is *0.7.3*.
+The latest version is [0.7.3](https://github.com/landshark666/passwordmaker-je/releases/latest)
 
 I've moved the codebase from Google Code to github. The screenshots are still on the Google Code site (links below).
 
@@ -41,4 +41,4 @@ I've moved the codebase from Google Code to github. The screenshots are still on
   * The interface is very similar to the Firefox plugin.
   * Command-line support (limited at the moment).
 
-Please see the [Usage] page for information on how to use the program.
+Please see the [Usage Page](https://github.com/landshark666/passwordmaker-je/wiki/Usage) for information on how to use the program.
