@@ -60,6 +60,8 @@ public class Main {
                     "Searching For Matching Account Via URL\n" +
                     "Usage: -f file -u url [-n -q -c numsecs]\n" +
                     "\t-f, --file=file             Specify the RDF or XML file to search\n" +
+                    "\t-F, --font=fontName         Specify the font name to use for password display\n" +
+                    "\t-z, --fontsize=N            Specify the font size to use for password display\n" +
                     "\t-u, --url=url               Specify the URL text to use when searching\n" +
                     "\t-c, --clipboard=numsecs     Copy the resulting password to the clipboard,\n" +
                     "\t                            wait for numsecs seconds then clear the clipboard\n" +
@@ -94,12 +96,14 @@ public class Main {
                 new LongOpt("clipboard", LongOpt.REQUIRED_ARGUMENT, null, 'c'),
                 new LongOpt("help",      LongOpt.NO_ARGUMENT,       null, 'h'),
                 new LongOpt("file",      LongOpt.REQUIRED_ARGUMENT, null, 'f'),
+                new LongOpt("font",      LongOpt.REQUIRED_ARGUMENT, null, 'F'),
+                new LongOpt("fontsize",  LongOpt.REQUIRED_ARGUMENT, null, 'z'),
                 new LongOpt("nogui",     LongOpt.NO_ARGUMENT,       null, 'n'),
                 new LongOpt("quiet",     LongOpt.NO_ARGUMENT,       null, 'q'),
                 new LongOpt("url",       LongOpt.REQUIRED_ARGUMENT, null, 'u'),
         };
         int c;
-        Getopt g = new Getopt("pwmje", args, "-:hf:nc:u:qd:", longopts);
+        Getopt g = new Getopt("pwmje", args, "-:hf:F:nc:u:qd:z:", longopts);
         g.setOpterr(false);
         
         while((c = g.getopt())!=-1) {
@@ -123,6 +127,10 @@ public class Main {
                     cmdLineSettings.inputFilename = g.getOptarg();
                     break;
                     
+                case 'F': // set the password font
+                    cmdLineSettings.pwFont = g.getOptarg();
+                    break;
+                    
                 case 'n': // no gui
                     cmdLineSettings.nogui = true;
                     break;
@@ -133,6 +141,16 @@ public class Main {
                 
                 case 'u': // set the url to search with
                     cmdLineSettings.matchUrl = g.getOptarg();
+                    break;
+                    
+                case 'z': // set font size
+                    try {
+                        cmdLineSettings.fontSize = Integer.parseInt(g.getOptarg());
+                        if(cmdLineSettings.fontSize <= 0)
+                            throw new Exception();
+                    } catch(Exception e) {
+                        throw new Exception("Invalid -z/--fontsize value, must be numeric value greater than 0: " + g.getOptarg());
+                    }
                     break;
             }
         }
