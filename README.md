@@ -7,19 +7,19 @@ The latest version is <b>0.7.3</b>.
 
 I've moved the codebase from Google Code to github. The screenshots are still on the Google Code site (links below).
 
-<b>On Windows 7</b>
+<p><b>On Windows 7</b>
 ![Windows Screenshot](http://wiki.passwordmaker-je.googlecode.com/git/images/main-win32.png)
 
-<b>On OSX 10.7</b>
+<p><b>On OSX 10.7</b>
 ![OSX Screenshot](http://wiki.passwordmaker-je.googlecode.com/git/images/main-osx.png)
 
-<b>Account Dialog</b>
+<p><b>Account Dialog</b>
 ![Windows Account Dialog](http://wiki.passwordmaker-je.googlecode.com/git/images/accountdlg-win32.png)
 
-<b>Filtered Accounts</b>
+<p><b>Filtered Accounts</b>
 ![Windows Filtered](http://wiki.passwordmaker-je.googlecode.com/git/images/main-filtered-win32.png)
 
-<b>URL Search</b>
+<p><b>URL Search</b>
 ![URL Search](http://wiki.passwordmaker-je.googlecode.com/git/images/main-urlsearch-win32.png)
 
 *Features*
