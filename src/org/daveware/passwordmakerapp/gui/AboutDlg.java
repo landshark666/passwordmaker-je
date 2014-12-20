@@ -262,7 +262,7 @@ public class AboutDlg extends Dialog {
 		
 		lblCopyrightcDave = new Label(composite_2, SWT.NONE);
 		lblCopyrightcDave.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblCopyrightcDave.setText("Copyright (C) Dave Marotti, 2011-2013. All rights reserved.");
+		lblCopyrightcDave.setText("Copyright (C) Dave Marotti, 2011-2014. All rights reserved.");
 		
 		link = new Link(composite_2, SWT.NONE);
 		link.addSelectionListener(new SelectionAdapter() {
