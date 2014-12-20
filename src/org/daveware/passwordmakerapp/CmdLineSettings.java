@@ -33,6 +33,8 @@ public class CmdLineSettings {
     public String progName = null;
     public String inputFilename = null;
     public String matchUrl = null;
+    public String pwFont = null;
+    public int fontSize = -1;
     public boolean quiet = false;
     public boolean nogui = false;
     public int timeout = -1;
