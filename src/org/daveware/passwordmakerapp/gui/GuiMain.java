@@ -202,6 +202,10 @@ public class GuiMain implements DatabaseListener {
     private Label lblInputUrl;
     private Text editUrl;
     private Label lblUrl_1;
+    private Text editModifier;
+    private Button btnModifier;
+    private Text editLength;
+    private Button btnLength;
 
     public GuiMain(CmdLineSettings c) {
         cmdLineSettings = c;
@@ -341,8 +345,13 @@ public class GuiMain implements DatabaseListener {
         regularSearchFont = new Font(display, stockFont.getFontData());
         accountFilterText.setFont(italicsSearchFont);
 
-        passwordFont = new Font(Display.getCurrent(), JFaceResources.getFont(JFaceResources.TEXT_FONT).getFontData()[0].getName(),
-                14, SWT.BOLD);
+        int fontSize = cmdLineSettings.fontSize > 0 ? cmdLineSettings.fontSize : 14; 
+        if(cmdLineSettings.pwFont!=null) {
+            passwordFont = new Font(Display.getCurrent(), cmdLineSettings.pwFont, fontSize, SWT.BOLD);
+        }
+        else {
+            passwordFont = new Font(Display.getCurrent(), JFaceResources.getFont(JFaceResources.TEXT_FONT).getFontData()[0].getName(), fontSize, SWT.BOLD);
+        }
     }
     
     /*
@@ -646,6 +655,54 @@ public class GuiMain implements DatabaseListener {
         editUrl.setEditable(false);
         editUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
                 1, 1));
+        
+        btnModifier = new Button(grpInput, SWT.CHECK);
+        btnModifier.setToolTipText("Override the selected account's password modifier");
+        btnModifier.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                editModifier.setEnabled(btnModifier.getSelection());
+                editModifier.setEditable(btnModifier.getSelection());
+                regeneratePasswordAndDraw();
+            }
+        });
+        btnModifier.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        btnModifier.setAlignment(SWT.RIGHT);
+        btnModifier.setText("Modifier:");
+        
+        editModifier = new Text(grpInput, SWT.BORDER);
+        editModifier.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent arg0) {
+                regeneratePasswordAndDraw();
+            }
+        });
+        editModifier.setEditable(false);
+        editModifier.setEnabled(false);
+        editModifier.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        
+        btnLength = new Button(grpInput, SWT.CHECK);
+        btnLength.setToolTipText("Override the selected account's password length");
+        btnLength.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                editLength.setEnabled(btnLength.getSelection());
+                editLength.setEditable(btnLength.getSelection());
+                regeneratePasswordAndDraw();
+            }
+        });
+        btnLength.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        btnLength.setAlignment(SWT.RIGHT);
+        btnLength.setText("Length:");
+        
+        editLength = new Text(grpInput, SWT.BORDER);
+        editLength.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent arg0) {
+                regeneratePasswordAndDraw();
+            }
+        });
+        editLength.setEnabled(false);
+        editLength.setEditable(false);
+        editLength.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         Label lblUsername = new Label(grpInput, SWT.RIGHT);
         lblUsername.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
@@ -722,6 +779,7 @@ public class GuiMain implements DatabaseListener {
                 "/org/daveware/passwordmakerapp/icons/eye.png"));
 
         Canvas outputCanvas = new Canvas(grpInput, SWT.BORDER);
+        outputCanvas.setFont(SWTResourceManager.getFont("DejaVu Sans Mono", 9, SWT.NORMAL));
         outputCanvas.setLayout(new FillLayout(SWT.HORIZONTAL));
         outputCanvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
                 false, 1, 1));
@@ -1113,6 +1171,20 @@ public class GuiMain implements DatabaseListener {
                 tempAccount.setUsername(editUsername.getText());
                 tempAccount.setId(selectedAccount.getId());
                 tempAccount.setUrl(editUrl.getText());
+                
+                // If the custom length/modifier buttons are checked, override 
+                // the account's modifier/length settings.
+                if(btnModifier.getSelection()) {
+                    tempAccount.setModifier(editModifier.getText());
+                }
+                if(btnLength.getSelection()) {
+                    int length = tempAccount.getLength();
+                    try {
+                        length = Integer.parseInt(editLength.getText());
+                    } catch(Exception e) {
+                    }
+                    tempAccount.setLength(length);
+                }
 
                 mpw = new SecureCharArray(editMP.getText());
 
@@ -2126,6 +2198,9 @@ public class GuiMain implements DatabaseListener {
                 lblInputUrl.setEnabled(false);
                 editUrl.setText(acc.getUrl());
             }
+            
+            editModifier.setText(acc.getModifier());
+            editLength.setText(Integer.toString(acc.getLength()));
 
         } else {
             btnCopyToClipboard.setEnabled(false);
